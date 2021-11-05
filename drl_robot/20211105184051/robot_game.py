@@ -244,7 +244,7 @@ def main():
         while counter < len(avg_score):
             avg_score_dict[f'score_{counter}'] = avg_score[counter]
             counter += 1
-        avg_score_dict['mean'] = np.mean(avg_score)
+        avg_score_dict['mean':np.mean(avg_score)]
 
         with open(os.path.join(model_dir, 'average_scores.json'), 'w') as fp:
             json.dump(avg_score, fp)

@@ -114,8 +114,8 @@ def main():
         'learning_rate': [0.001],
         'layers': [[32, 32]],
         'activation': ['relu','tanh','sigmoid'],
-        'mini_batch_size': [1000],  # roughly one game's worth of actions
-        'memory_size': [10000],  # roughly 10 games worth of actions
+        'mini_batch_size': [100],  # roughly one game's worth of actions
+        'memory_size': [1000],  # roughly 10 games worth of actions
         'reg_const': [0.000],
         'epsilon_decay': [0.99],
         'state_size': [6,],
@@ -176,7 +176,7 @@ def main():
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
 
         average_score = 0
-        num_episodes = 100  # number of games to train
+        num_episodes = 1000  # number of games to train
         t = time.time()
         avg_score = []
         for e in range(1, num_episodes+1):
@@ -244,7 +244,7 @@ def main():
         while counter < len(avg_score):
             avg_score_dict[f'score_{counter}'] = avg_score[counter]
             counter += 1
-        avg_score_dict['mean'] = np.mean(avg_score)
+        avg_score_dict['mean':np.mean(avg_score)]
 
         with open(os.path.join(model_dir, 'average_scores.json'), 'w') as fp:
             json.dump(avg_score, fp)

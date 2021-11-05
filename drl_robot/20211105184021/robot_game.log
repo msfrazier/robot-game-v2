@@ -1,0 +1,16 @@
+2021-11-05 14:40:21,284 - robot.logger - INFO - drl_robot\20211105184021 vs. random_bot, self_play=True
+2021-11-05 14:40:21,518 - robot.logger - INFO - 
+[[ 0.    0.    0.    0.    0.    0.    0.    0.    0.    0.  ]
+ [ 0.11 -0.18 -0.05 -0.09 -0.14  0.17  0.16 -0.33 -0.07  0.07]
+ [-0.08 -0.21 -0.01 -0.27 -0.12  0.03  0.17 -0.34 -0.13 -0.02]
+ [-0.04 -0.3  -0.06 -0.44 -0.12  0.13  0.24 -0.58 -0.17 -0.11]
+ [-0.   -0.   -0.15 -0.06 -0.26  0.05  0.08 -0.22 -0.17  0.22]
+ [ 0.24 -0.09 -0.17  0.17  0.01 -0.04 -0.03 -0.05  0.11  0.13]
+ [-0.04 -0.1  -0.12 -0.11 -0.23 -0.05  0.04 -0.1  -0.13  0.16]
+ [-0.09 -0.28 -0.09 -0.05 -0.23  0.16  0.26 -0.33 -0.16  0.23]]
+2021-11-05 14:40:23,697 - robot.logger - INFO - episode: 1/1000, score =  2 -  4 = -2, e: 0.990, average_score: -0.02, average_reward: -0.018, play: 0.9 s., train: 1.3 s.
+2021-11-05 14:40:24,467 - robot.logger - INFO - episode: 2/1000, score =  2 -  3 = -1, e: 0.980, average_score: -0.03, average_reward: -0.034, play: 0.7 s., train: 0.1 s.
+2021-11-05 14:40:25,252 - robot.logger - INFO - episode: 3/1000, score =  5 -  5 =  0, e: 0.970, average_score: -0.03, average_reward: -0.048, play: 0.7 s., train: 0.1 s.
+2021-11-05 14:40:26,031 - robot.logger - INFO - episode: 4/1000, score =  4 -  3 =  1, e: 0.961, average_score: -0.02, average_reward: -0.060, play: 0.7 s., train: 0.1 s.
+2021-11-05 14:40:26,864 - robot.logger - INFO - episode: 5/1000, score =  2 -  1 =  1, e: 0.951, average_score: -0.01, average_reward: -0.074, play: 0.7 s., train: 0.1 s.
+2021-11-05 14:40:27,656 - robot.logger - INFO - episode: 6/1000, score =  3 -  1 =  2, e: 0.941, average_score: 0.01, average_reward: -0.087, play: 0.7 s., train: 0.1 s.
