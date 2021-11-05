@@ -1,0 +1,94 @@
+2021-11-05 10:32:40,823 - robot.logger - INFO - drl_robot\20211105143240 vs. drl_robot, self_play=True
+2021-11-05 10:32:41,058 - robot.logger - INFO - 
+[[ 0.    0.    0.    0.    0.    0.    0.    0.    0.    0.  ]
+ [ 0.07 -0.1   0.03 -0.03  0.02  0.03 -0.04  0.07  0.08 -0.12]
+ [-0.26  0.09 -0.18 -0.07  0.03  0.1  -0.    0.32 -0.02 -0.06]
+ [-0.23  0.03 -0.04 -0.14  0.03 -0.09 -0.15  0.25  0.03 -0.22]
+ [-0.01  0.09 -0.07 -0.01 -0.01 -0.06  0.08 -0.01 -0.08 -0.06]
+ [ 0.01 -0.07 -0.12 -0.19 -0.06 -0.01  0.04  0.13 -0.07 -0.14]
+ [-0.13  0.07 -0.17  0.1   0.04 -0.01  0.1   0.08  0.02 -0.09]
+ [-0.11 -0.05 -0.2   0.09  0.07 -0.01  0.05  0.19  0.19 -0.23]]
+2021-11-05 10:32:41,665 - robot.logger - INFO - episode: 1/1000, score =  1 -  3 = -2, e: 1.000, average_score: -0.02, average_reward: -0.018, play: 0.6 s., train: 0.0 s.
+2021-11-05 10:32:44,048 - robot.logger - INFO - episode: 2/1000, score =  6 -  5 =  1, e: 0.990, average_score: -0.01, average_reward: -0.033, play: 0.5 s., train: 1.9 s.
+2021-11-05 10:32:44,827 - robot.logger - INFO - episode: 3/1000, score =  2 -  5 = -3, e: 0.980, average_score: -0.04, average_reward: -0.047, play: 0.6 s., train: 0.2 s.
+2021-11-05 10:32:45,681 - robot.logger - INFO - episode: 4/1000, score =  1 -  2 = -1, e: 0.970, average_score: -0.05, average_reward: -0.062, play: 0.7 s., train: 0.1 s.
+2021-11-05 10:32:46,468 - robot.logger - INFO - episode: 5/1000, score =  0 -  2 = -2, e: 0.961, average_score: -0.07, average_reward: -0.076, play: 0.6 s., train: 0.2 s.
+2021-11-05 10:32:47,251 - robot.logger - INFO - episode: 6/1000, score =  1 -  2 = -1, e: 0.951, average_score: -0.08, average_reward: -0.089, play: 0.7 s., train: 0.1 s.
+2021-11-05 10:32:47,845 - robot.logger - INFO - episode: 7/1000, score =  1 -  3 = -2, e: 0.941, average_score: -0.10, average_reward: -0.100, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:32:48,430 - robot.logger - INFO - episode: 8/1000, score =  3 -  4 = -1, e: 0.932, average_score: -0.11, average_reward: -0.109, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:32:49,016 - robot.logger - INFO - episode: 9/1000, score =  5 -  1 =  4, e: 0.923, average_score: -0.07, average_reward: -0.119, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:32:49,642 - robot.logger - INFO - episode: 10/1000, score =  2 -  2 =  0, e: 0.914, average_score: -0.06, average_reward: -0.127, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:32:50,622 - robot.logger - INFO - episode: 11/1000, score =  1 -  2 = -1, e: 0.904, average_score: -0.07, average_reward: -0.134, play: 0.8 s., train: 0.1 s.
+2021-11-05 10:32:51,470 - robot.logger - INFO - episode: 12/1000, score =  3 -  2 =  1, e: 0.895, average_score: -0.06, average_reward: -0.140, play: 0.6 s., train: 0.2 s.
+2021-11-05 10:32:52,074 - robot.logger - INFO - episode: 13/1000, score =  3 -  2 =  1, e: 0.886, average_score: -0.05, average_reward: -0.147, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:32:52,682 - robot.logger - INFO - episode: 14/1000, score =  2 -  4 = -2, e: 0.878, average_score: -0.07, average_reward: -0.153, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:32:53,452 - robot.logger - INFO - episode: 15/1000, score =  3 -  2 =  1, e: 0.869, average_score: -0.06, average_reward: -0.158, play: 0.6 s., train: 0.2 s.
+2021-11-05 10:32:54,300 - robot.logger - INFO - episode: 16/1000, score =  2 -  2 =  0, e: 0.860, average_score: -0.06, average_reward: -0.164, play: 0.7 s., train: 0.1 s.
+2021-11-05 10:32:54,915 - robot.logger - INFO - episode: 17/1000, score =  2 -  3 = -1, e: 0.851, average_score: -0.07, average_reward: -0.169, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:32:55,915 - robot.logger - INFO - episode: 18/1000, score =  2 -  2 =  0, e: 0.843, average_score: -0.07, average_reward: -0.172, play: 0.9 s., train: 0.1 s.
+2021-11-05 10:32:56,606 - robot.logger - INFO - episode: 19/1000, score =  3 -  2 =  1, e: 0.835, average_score: -0.06, average_reward: -0.173, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:32:57,250 - robot.logger - INFO - episode: 20/1000, score =  3 -  1 =  2, e: 0.826, average_score: -0.04, average_reward: -0.178, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:32:57,846 - robot.logger - INFO - episode: 21/1000, score =  5 -  4 =  1, e: 0.818, average_score: -0.03, average_reward: -0.180, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:32:58,801 - robot.logger - INFO - episode: 22/1000, score =  3 -  4 = -1, e: 0.810, average_score: -0.04, average_reward: -0.179, play: 0.7 s., train: 0.3 s.
+2021-11-05 10:32:59,589 - robot.logger - INFO - episode: 23/1000, score =  5 -  3 =  2, e: 0.802, average_score: -0.02, average_reward: -0.181, play: 0.6 s., train: 0.2 s.
+2021-11-05 10:33:00,553 - robot.logger - INFO - episode: 24/1000, score =  4 -  2 =  2, e: 0.794, average_score: 0.00, average_reward: -0.181, play: 0.8 s., train: 0.2 s.
+2021-11-05 10:33:01,472 - robot.logger - INFO - episode: 25/1000, score =  5 -  3 =  2, e: 0.786, average_score: 0.02, average_reward: -0.182, play: 0.6 s., train: 0.3 s.
+2021-11-05 10:33:02,168 - robot.logger - INFO - episode: 26/1000, score =  3 -  2 =  1, e: 0.778, average_score: 0.03, average_reward: -0.184, play: 0.6 s., train: 0.1 s.
+2021-11-05 10:33:02,926 - robot.logger - INFO - episode: 27/1000, score =  2 -  4 = -2, e: 0.770, average_score: 0.01, average_reward: -0.185, play: 0.5 s., train: 0.2 s.
+2021-11-05 10:33:03,708 - robot.logger - INFO - episode: 28/1000, score =  6 -  1 =  5, e: 0.762, average_score: 0.06, average_reward: -0.185, play: 0.7 s., train: 0.1 s.
+2021-11-05 10:33:04,501 - robot.logger - INFO - episode: 29/1000, score =  2 -  6 = -4, e: 0.755, average_score: 0.02, average_reward: -0.185, play: 0.7 s., train: 0.1 s.
+2021-11-05 10:33:05,323 - robot.logger - INFO - episode: 30/1000, score =  1 -  3 = -2, e: 0.747, average_score: 0.00, average_reward: -0.188, play: 0.7 s., train: 0.1 s.
+2021-11-05 10:33:06,544 - robot.logger - INFO - episode: 31/1000, score =  7 -  4 =  3, e: 0.740, average_score: 0.03, average_reward: -0.186, play: 1.0 s., train: 0.2 s.
+2021-11-05 10:33:07,129 - robot.logger - INFO - episode: 32/1000, score =  4 -  0 =  4, e: 0.732, average_score: 0.07, average_reward: -0.189, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:33:07,845 - robot.logger - INFO - episode: 33/1000, score =  2 -  4 = -2, e: 0.725, average_score: 0.05, average_reward: -0.188, play: 0.6 s., train: 0.1 s.
+2021-11-05 10:33:08,492 - robot.logger - INFO - episode: 34/1000, score =  2 -  6 = -4, e: 0.718, average_score: 0.01, average_reward: -0.188, play: 0.5 s., train: 0.2 s.
+2021-11-05 10:33:09,378 - robot.logger - INFO - episode: 35/1000, score =  4 -  4 =  0, e: 0.711, average_score: 0.01, average_reward: -0.187, play: 0.7 s., train: 0.2 s.
+2021-11-05 10:33:10,162 - robot.logger - INFO - episode: 36/1000, score =  3 -  4 = -1, e: 0.703, average_score: -0.00, average_reward: -0.187, play: 0.7 s., train: 0.1 s.
+2021-11-05 10:33:11,069 - robot.logger - INFO - episode: 37/1000, score =  1 -  3 = -2, e: 0.696, average_score: -0.02, average_reward: -0.190, play: 0.7 s., train: 0.2 s.
+2021-11-05 10:33:11,841 - robot.logger - INFO - episode: 38/1000, score =  3 -  5 = -2, e: 0.689, average_score: -0.04, average_reward: -0.189, play: 0.7 s., train: 0.1 s.
+2021-11-05 10:33:12,572 - robot.logger - INFO - episode: 39/1000, score =  3 -  4 = -1, e: 0.683, average_score: -0.05, average_reward: -0.187, play: 0.6 s., train: 0.1 s.
+2021-11-05 10:33:13,166 - robot.logger - INFO - episode: 40/1000, score =  3 -  6 = -3, e: 0.676, average_score: -0.08, average_reward: -0.185, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:33:13,907 - robot.logger - INFO - episode: 41/1000, score =  3 -  3 =  0, e: 0.669, average_score: -0.08, average_reward: -0.184, play: 0.5 s., train: 0.2 s.
+2021-11-05 10:33:14,861 - robot.logger - INFO - episode: 42/1000, score =  6 -  4 =  2, e: 0.662, average_score: -0.06, average_reward: -0.182, play: 0.7 s., train: 0.2 s.
+2021-11-05 10:33:15,632 - robot.logger - INFO - episode: 43/1000, score =  3 -  3 =  0, e: 0.656, average_score: -0.06, average_reward: -0.182, play: 0.7 s., train: 0.1 s.
+2021-11-05 10:33:16,752 - robot.logger - INFO - episode: 44/1000, score =  3 -  5 = -2, e: 0.649, average_score: -0.08, average_reward: -0.178, play: 1.0 s., train: 0.1 s.
+2021-11-05 10:33:17,476 - robot.logger - INFO - episode: 45/1000, score =  3 -  3 =  0, e: 0.643, average_score: -0.08, average_reward: -0.174, play: 0.6 s., train: 0.1 s.
+2021-11-05 10:33:18,083 - robot.logger - INFO - episode: 46/1000, score =  1 -  4 = -3, e: 0.636, average_score: -0.10, average_reward: -0.171, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:33:18,821 - robot.logger - INFO - episode: 47/1000, score =  5 -  1 =  4, e: 0.630, average_score: -0.06, average_reward: -0.173, play: 0.6 s., train: 0.1 s.
+2021-11-05 10:33:19,937 - robot.logger - INFO - episode: 48/1000, score =  6 -  5 =  1, e: 0.624, average_score: -0.05, average_reward: -0.173, play: 0.8 s., train: 0.3 s.
+2021-11-05 10:33:20,644 - robot.logger - INFO - episode: 49/1000, score =  3 -  2 =  1, e: 0.617, average_score: -0.04, average_reward: -0.173, play: 0.6 s., train: 0.1 s.
+2021-11-05 10:33:21,570 - robot.logger - INFO - episode: 50/1000, score =  4 -  3 =  1, e: 0.611, average_score: -0.03, average_reward: -0.173, play: 0.8 s., train: 0.1 s.
+2021-11-05 10:33:21,689 - robot.logger - INFO - 
+[[ 0.82  0.85  0.83  0.84  0.85  0.83  0.83  0.8   0.95 -1.01]
+ [ 0.24  0.26  0.23  0.47  0.64  0.98  0.67  0.67  0.67 -1.05]
+ [ 0.76  0.79  0.76  0.77  0.78  0.81  0.79  0.78  0.96 -1.01]
+ [-0.72 -0.55 -0.36 -0.44 -0.89 -0.98 -0.89 -0.82 -1.   -1.  ]
+ [ 0.86  0.78  0.81  0.85  0.73  0.98  0.81  0.78  0.83 -0.99]
+ [ 0.95  0.75  0.85  0.72  0.73  0.96  0.81  0.73  0.8  -0.97]
+ [ 0.66  0.88  0.74  0.86  0.81  0.99  0.78  0.76  0.84 -0.96]
+ [ 0.84  0.76  0.83  0.93  0.74  0.83  0.76  0.83  0.86 -1.02]]
+2021-11-05 10:33:27,896 - robot.logger - INFO - vs. drl_robot: 8-1-1, average score = 4.2 - 2.1 = 2.1, 6.2 s.
+2021-11-05 10:33:28,791 - robot.logger - INFO - episode: 51/1000, score =  6 -  2 =  4, e: 0.605, average_score: 0.01, average_reward: -0.172, play: 0.8 s., train: 0.1 s.
+2021-11-05 10:33:29,472 - robot.logger - INFO - episode: 52/1000, score =  2 -  3 = -1, e: 0.599, average_score: -0.00, average_reward: -0.172, play: 0.6 s., train: 0.1 s.
+2021-11-05 10:33:30,454 - robot.logger - INFO - episode: 53/1000, score =  1 -  3 = -2, e: 0.593, average_score: -0.02, average_reward: -0.173, play: 0.8 s., train: 0.2 s.
+2021-11-05 10:33:31,129 - robot.logger - INFO - episode: 54/1000, score =  4 -  5 = -1, e: 0.587, average_score: -0.03, average_reward: -0.172, play: 0.6 s., train: 0.1 s.
+2021-11-05 10:33:31,948 - robot.logger - INFO - episode: 55/1000, score =  3 -  3 =  0, e: 0.581, average_score: -0.03, average_reward: -0.170, play: 0.7 s., train: 0.1 s.
+2021-11-05 10:33:32,540 - robot.logger - INFO - episode: 56/1000, score =  5 -  3 =  2, e: 0.575, average_score: -0.01, average_reward: -0.171, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:33:33,326 - robot.logger - INFO - episode: 57/1000, score =  6 -  5 =  1, e: 0.570, average_score: -0.00, average_reward: -0.170, play: 0.7 s., train: 0.1 s.
+2021-11-05 10:33:34,014 - robot.logger - INFO - episode: 58/1000, score =  2 -  6 = -4, e: 0.564, average_score: -0.04, average_reward: -0.169, play: 0.6 s., train: 0.1 s.
+2021-11-05 10:33:34,849 - robot.logger - INFO - episode: 59/1000, score =  3 -  5 = -2, e: 0.558, average_score: -0.06, average_reward: -0.169, play: 0.7 s., train: 0.2 s.
+2021-11-05 10:33:35,742 - robot.logger - INFO - episode: 60/1000, score =  4 -  4 =  0, e: 0.553, average_score: -0.06, average_reward: -0.167, play: 0.8 s., train: 0.1 s.
+2021-11-05 10:33:36,347 - robot.logger - INFO - episode: 61/1000, score =  3 -  9 = -6, e: 0.547, average_score: -0.12, average_reward: -0.165, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:33:37,317 - robot.logger - INFO - episode: 62/1000, score =  6 -  8 = -2, e: 0.542, average_score: -0.14, average_reward: -0.160, play: 0.7 s., train: 0.3 s.
+2021-11-05 10:33:37,890 - robot.logger - INFO - episode: 63/1000, score =  5 -  3 =  2, e: 0.536, average_score: -0.12, average_reward: -0.162, play: 0.5 s., train: 0.1 s.
+2021-11-05 10:33:38,851 - robot.logger - INFO - episode: 64/1000, score =  4 -  7 = -3, e: 0.531, average_score: -0.15, average_reward: -0.158, play: 0.9 s., train: 0.1 s.
+2021-11-05 10:33:39,877 - robot.logger - INFO - episode: 65/1000, score =  2 -  4 = -2, e: 0.526, average_score: -0.16, average_reward: -0.158, play: 0.9 s., train: 0.2 s.
+2021-11-05 10:33:40,932 - robot.logger - INFO - episode: 66/1000, score =  4 -  7 = -3, e: 0.520, average_score: -0.19, average_reward: -0.156, play: 0.9 s., train: 0.1 s.
+2021-11-05 10:33:41,937 - robot.logger - INFO - episode: 67/1000, score =  3 -  3 =  0, e: 0.515, average_score: -0.19, average_reward: -0.156, play: 0.8 s., train: 0.2 s.
+2021-11-05 10:33:42,644 - robot.logger - INFO - episode: 68/1000, score =  5 -  3 =  2, e: 0.510, average_score: -0.17, average_reward: -0.155, play: 0.6 s., train: 0.1 s.
+2021-11-05 10:33:43,595 - robot.logger - INFO - episode: 69/1000, score =  5 -  4 =  1, e: 0.505, average_score: -0.16, average_reward: -0.153, play: 0.7 s., train: 0.3 s.
+2021-11-05 10:33:44,703 - robot.logger - INFO - episode: 70/1000, score =  3 -  6 = -3, e: 0.500, average_score: -0.19, average_reward: -0.149, play: 0.9 s., train: 0.3 s.
+2021-11-05 10:33:45,522 - robot.logger - INFO - episode: 71/1000, score =  6 -  7 = -1, e: 0.495, average_score: -0.19, average_reward: -0.149, play: 0.7 s., train: 0.1 s.
+2021-11-05 10:33:46,441 - robot.logger - INFO - episode: 72/1000, score =  5 -  3 =  2, e: 0.490, average_score: -0.17, average_reward: -0.146, play: 0.8 s., train: 0.1 s.
+2021-11-05 10:33:47,238 - robot.logger - INFO - episode: 73/1000, score =  5 -  7 = -2, e: 0.485, average_score: -0.19, average_reward: -0.145, play: 0.6 s., train: 0.2 s.
+2021-11-05 10:33:47,964 - robot.logger - INFO - episode: 74/1000, score =  5 -  3 =  2, e: 0.480, average_score: -0.17, average_reward: -0.145, play: 0.6 s., train: 0.1 s.
