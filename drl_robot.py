@@ -212,7 +212,10 @@ def main():
             t_train = time.time()
 
             # keep exponential running average of final score
-            average_score += 0.01 * (score - average_score)
+            if (e == 1):
+                average_score = score
+            else:
+                average_score += 0.01 * (score - average_score)
 
             # log the results
             logger.info(f'episode: {e}/{num_episodes}, score = {scores[0]:2d} - {scores[1]:2d} = {score:2d}, '
