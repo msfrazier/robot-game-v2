@@ -13,6 +13,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.regularizers import l2
 from drl_robot_helpers import DRLRobot, get_player, get_logger
 from sklearn.model_selection import ParameterGrid
+from tensorflow import config
 
 
 class Robot(DRLRobot):
@@ -110,6 +111,16 @@ class Robot(DRLRobot):
 
 
 def main():
+    gpus = config.experimental.list_physical_devices('GPU')
+    if gpus:
+        try:
+            # Currently, memory growth needs to be the same across GPUs
+            for gpu in gpus:
+                config.experimental.set_memory_growth(gpus[0], True)
+        except RuntimeError as e:
+            # Memory growth must be set before GPUs have been initialized
+            print(e)
+
     self_play = True
     params = {
         'learning_rate': [0.001, 0.01, 0.0001],
@@ -120,7 +131,7 @@ def main():
         'memory_size': [10000],  # roughly 10 games worth of actions
         'reg_const': [0.000,0.0001,0.001],
         'epsilon_decay': [0.99,0.9,0.95],
-        'state_size': [6,],
+        'state_size': [(6,)],
         'action_size': [10],
     }
 
@@ -128,6 +139,7 @@ def main():
     params_grid = list(ParameterGrid(params))
 
     for params_ in params_grid:
+        print(params_)
 
         if len(sys.argv) > 1:
             model_dir = sys.argv[1]
@@ -178,7 +190,7 @@ def main():
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
 
         average_score = 0
-        num_episodes = 1000  # number of games to train
+        num_episodes = 10  # number of games to train
         t = time.time()
         avg_score = []
         for e in range(1, num_episodes+1):
