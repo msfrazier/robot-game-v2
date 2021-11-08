@@ -14,6 +14,7 @@ from tensorflow.keras.regularizers import l2
 from drl_robot_helpers import DRLRobot, get_player, get_logger
 from sklearn.model_selection import ParameterGrid
 from tensorflow import config
+from tensorflow_core.python.keras.backend import clear_session
 
 
 class Robot(DRLRobot):
@@ -24,20 +25,22 @@ class Robot(DRLRobot):
 
     @staticmethod
     def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=(32, 32), activation='relu',
-                     reg_const=0, momentum=0.99):
+                     reg_const=0, momentum=0.99, output_activation='linear'):
         """
         Build a keras model that takes the game state as input and produces the expected future reward corresponding
         to each possible action.
 
         :return: a keras model
         """
+        clear_session()
+
         model = Sequential()
         model.add(Input(shape=state_size))
         for units in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
-            model.add(BatchNormalization(momentum=momentum))
-        model.add(Dense(action_size, activation='linear', kernel_regularizer=l2(reg_const)))
-        model.compile(loss='mse', optimizer=Adam(learning_rate=learning_rate))
+            #model.add(BatchNormalization(momentum=momentum))
+        model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
+        model.compile(loss='mse', optimizer=Adamax(learning_rate=learning_rate))
         return model
 
     @staticmethod
@@ -123,14 +126,17 @@ def main():
 
     self_play = True
     params = {
-        'learning_rate': [0.001, 0.01, 0.0001],
-        'layers': [[32, 32],[64,64],[32,64],[64,32]],
-        'activation': ['relu','tanh','sigmoid'],
-        'momentum': [0.99,0.9],
+        'learning_rate': [0.001],
+        'layers': [[32,64]],
+        'activation': ['relu'],
+        'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
         'memory_size': [10000],  # roughly 10 games worth of actions
-        'reg_const': [0.000,0.0001,0.001],
-        'epsilon_decay': [0.99,0.9,0.95],
+        'reg_const': [0.000
+            #,0.0001,0.001
+                      ],
+        'epsilon_decay': [0.99],
+        'output_activation': ['linear','tanh'],
         'state_size': [(6,)],
         'action_size': [10],
     }
@@ -149,7 +155,7 @@ def main():
         if len(sys.argv) > 2:
             opponent = sys.argv[2]
         else:
-            opponent = 'random_bot'
+            opponent = 'sfpar'
 
         if not os.path.isdir(model_dir):
             print(f'Creating {model_dir}')
@@ -190,7 +196,7 @@ def main():
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
 
         average_score = 0
-        num_episodes = 10  # number of games to train
+        num_episodes = 1000  # number of games to train
         t = time.time()
         avg_score = []
         for e in range(1, num_episodes+1):
