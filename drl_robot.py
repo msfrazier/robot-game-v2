@@ -9,7 +9,7 @@ import rgkit.rg as rg
 from rgkit import game as rg_game
 from tensorflow.keras.layers import Dense, Input, BatchNormalization
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam, Adamax
 from tensorflow.keras.regularizers import l2
 from drl_robot_helpers import DRLRobot, get_player, get_logger
 from sklearn.model_selection import ParameterGrid
@@ -127,7 +127,7 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.001],
-        'layers': [[32,64]],
+        'layers': [[1280,640,320,160]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
@@ -135,8 +135,8 @@ def main():
         'reg_const': [0.000
             #,0.0001,0.001
                       ],
-        'epsilon_decay': [0.99],
-        'output_activation': ['linear','tanh'],
+        'epsilon_decay': [0.99,0.95,0.9],
+        'output_activation': ['tanh'],
         'state_size': [(6,)],
         'action_size': [10],
     }
@@ -270,7 +270,7 @@ def main():
         avg_score_dict['mean'] = np.mean(avg_score)
 
         with open(os.path.join(model_dir, 'average_scores.json'), 'w') as fp:
-            json.dump(avg_score, fp)
+            json.dump(avg_score_dict, fp)
 
 if __name__ == '__main__':
     main()
