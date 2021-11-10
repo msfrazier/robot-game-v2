@@ -38,9 +38,10 @@ class Robot(DRLRobot):
         model.add(Input(shape=state_size))
         for units in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
-            #model.add(BatchNormalization(momentum=momentum))
+            model.add(BatchNormalization(momentum=momentum))
+        model.add(BatchNormalization(momentum=momentum))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
-        model.compile(loss='mse', optimizer=Adamax(learning_rate=learning_rate))
+        model.compile(loss='mse', optimizer=Adam(learning_rate=learning_rate))
         return model
 
     @staticmethod
@@ -127,15 +128,15 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.001],
-        'layers': [[1280,640,320,160]],
+        'layers': [[128,64,32,16]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
         'memory_size': [10000],  # roughly 10 games worth of actions
         'reg_const': [0.000
-            #,0.0001,0.001
+            ,0.0001,0.001
                       ],
-        'epsilon_decay': [0.99,0.95,0.9],
+        'epsilon_decay': [0.99],
         'output_activation': ['tanh'],
         'state_size': [(6,)],
         'action_size': [10],
@@ -264,6 +265,8 @@ def main():
 
         counter = 0
         avg_score_dict = {}
+        avg_score_dict['testing_bot'] = opponent
+        avg_score_dict['Play_against_self'] = self_play
         while counter < len(avg_score):
             avg_score_dict[f'score_{counter}'] = avg_score[counter]
             counter += 1
