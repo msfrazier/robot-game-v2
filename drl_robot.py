@@ -38,8 +38,9 @@ class Robot(DRLRobot):
         model.add(Input(shape=state_size))
         for units in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
-            #model.add(BatchNormalization(momentum=momentum))
+            model.add(BatchNormalization(momentum=momentum))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
+        model.add(BatchNormalization(momentum=momentum))
         model.compile(loss='mse', optimizer=Adamax(learning_rate=learning_rate))
         return model
 
@@ -82,17 +83,25 @@ class Robot(DRLRobot):
         :param robot: The robot to compute the state for.
         :return: The robot's state as a numpy array
         """
+        offsets = ((-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2),
+                   (-2, 1), (-1, 1), (0, 1), (1, -1), (2, 1),
+                   (-2, 0), (-1, 0), (1, -1), (2, 0),
+                   (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
+                   (-2, -2), (-1, -2), (0, -2), (1, -1), (2, -2))
+
+        x, y = robot.location
+        locs_around = [(x + dx, y + dy) for dx, dy in offsets]
+        locs_around = [a_loc for a_loc in locs_around]
 
         # state = [on spawn?, spawn turn?, enemy_down?, enemy_right?, enemy_up?, enemy_left?]
         state = [
-            'spawn' in rg.loc_types(robot.location),
-            game.turn % 10 == 0,
-        ] + [
-            Robot.enemy_at_loc(game, robot, loc) for loc in rg.locs_around(robot.location)
-        ]
+                    'spawn' in rg.loc_types(robot.location),
+                    game.turn % 10 == 0,
+                ] + [
+                    Robot.enemy_at_loc(game, robot, loc) for loc in locs_around
+                ] + [robot.hp / 50]
 
         return np.array(state, dtype=np.float32)
-
     @staticmethod
     def get_reward(game, robot):
         """
@@ -105,12 +114,15 @@ class Robot(DRLRobot):
         if robot.hp <= 0:
             # death
             return -1.0
-        elif game.turn == 99:
-            # survive
-            return 1.0
+        elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:
+            return -1
+        # elif game.turn == 99:
+        # survive
+        #    return 1.0
         else:
             # otherwise
-            return 0.0
+            return robot.damage_caused / (1 / robot.hp) + robot.hp / 50
+
 
 
 def main():
@@ -126,18 +138,16 @@ def main():
 
     self_play = True
     params = {
-        'learning_rate': [0.001],
-        'layers': [[1280,640,320,160]],
+        'learning_rate': [0.01],
+        'layers': [[128,256,128]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
         'memory_size': [10000],  # roughly 10 games worth of actions
-        'reg_const': [0.000
-            #,0.0001,0.001
-                      ],
+        'reg_const': [0.000],
         'epsilon_decay': [0.99,0.95,0.9],
         'output_activation': ['tanh'],
-        'state_size': [(6,)],
+        'state_size': [(27,)],
         'action_size': [10],
     }
 
@@ -183,14 +193,18 @@ def main():
             player3, robot3 = None, None
 
         check_states = np.array([
-            [0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0, 0],
-            [1, 0, 0, 0, 0, 0],
-            [1, 1, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, .02],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .02],
+
         ], dtype=np.float32)
 
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
