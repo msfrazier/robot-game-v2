@@ -1,15 +1,16 @@
 import ast
+import json
 import logging
 import os
 import random
 import numpy as np
 from abc import abstractmethod
 from collections import deque
+from importlib.util import spec_from_file_location, module_from_spec
 from rgkit import rg
 from rgkit import game as rg_game
 from rgkit.settings import settings
 from tensorflow.keras.models import load_model
-
 
 np.set_printoptions(precision=3, suppress=True)
 
@@ -211,13 +212,6 @@ class DRLRobot:
         pass
 
 
-def get_player(module_name):
-    import importlib
-    module = importlib.import_module(module_name)
-    robot = getattr(module, 'Robot')()
-    return rg_game.Player(robot=robot), robot
-
-
 def get_logger(model_dir):
     # noinspection SpellCheckingInspection
     fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -231,3 +225,33 @@ def get_logger(model_dir):
     logger.addHandler(file_log_handler)
     logger.addHandler(stream_handler)
     return logger
+
+
+def get_player(path):
+    if os.path.isdir(path):
+        # if it's a model directory
+        model_dir = path
+        params_file = os.path.join(model_dir, 'params.json')
+        assert os.path.isfile(params_file), f'Failed to find {params_file}'
+
+        with open(params_file) as fp:
+            model_params = json.load(fp)
+
+        robot_file = os.path.join(model_dir, 'robot_game.py')
+        assert os.path.isfile(robot_file), f'Failed to find {robot_file}'
+
+        spec = spec_from_file_location('robot_game', robot_file)
+        module = module_from_spec(spec)
+        spec.loader.exec_module(module)
+    else:
+        # if it's a robot file
+        import importlib
+        module = importlib.import_module(path)
+        model_params = {}
+    robot = getattr(module, 'Robot')(**model_params)
+    return rg_game.Player(robot=robot), robot
+
+
+if __name__ == '__main__':
+    player, robot = get_player('drl_robot/20211104224501')
+    print(player, robot)

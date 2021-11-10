@@ -7,7 +7,7 @@ import time
 import numpy as np
 import rgkit.rg as rg
 from rgkit import game as rg_game
-from tensorflow.keras.layers import Dense, Input, BatchNormalization
+from tensorflow.keras.layers import Dense, Input, BatchNormalization, GaussianDropout
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam, Adamax
 from tensorflow.keras.regularizers import l2
@@ -39,6 +39,7 @@ class Robot(DRLRobot):
         for units in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
             model.add(BatchNormalization(momentum=momentum))
+            model.add(GaussianDropout(.1))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
         model.add(BatchNormalization(momentum=momentum))
         model.compile(loss='mse', optimizer=Adamax(learning_rate=learning_rate))
@@ -85,7 +86,7 @@ class Robot(DRLRobot):
         """
         offsets = ((-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2),
                    (-2, 1), (-1, 1), (0, 1), (1, -1), (2, 1),
-                   (-2, 0), (-1, 0), (1, -1), (2, 0),
+                   (-2, 0), (-1, 0),         (1, -1), (2, 0),
                    (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
                    (-2, -2), (-1, -2), (0, -2), (1, -1), (2, -2))
 
@@ -102,6 +103,7 @@ class Robot(DRLRobot):
                 ] + [robot.hp / 50]
 
         return np.array(state, dtype=np.float32)
+
     @staticmethod
     def get_reward(game, robot):
         """
@@ -115,14 +117,15 @@ class Robot(DRLRobot):
             # death
             return -1.0
         elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:
-            return -1
+           return -1
         # elif game.turn == 99:
-        # survive
-        #    return 1.0
+            # survive
+            # return 1.0
         else:
             # otherwise
-            return robot.damage_caused / (1 / robot.hp) + robot.hp / 50
-
+            # return 0.0
+            return robot.damage_caused / robot.hp
+            # robot.hp / 50
 
 
 def main():
@@ -139,19 +142,19 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.01],
-        'layers': [[128,256,128]],
+        'layers': [[128, 64, 128]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
         'memory_size': [10000],  # roughly 10 games worth of actions
         'reg_const': [0.000],
-        'epsilon_decay': [0.99,0.95,0.9],
+        'epsilon_decay': [0.99],
         'output_activation': ['tanh'],
         'state_size': [(27,)],
         'action_size': [10],
     }
 
-    #Get params for GridSearch
+    # Get params for GridSearch
     params_grid = list(ParameterGrid(params))
 
     for params_ in params_grid:
@@ -174,6 +177,7 @@ def main():
             with open(os.path.join(model_dir, 'params.json'), 'w') as fp:
                 json.dump(params_, fp)
             shutil.copyfile(__file__, os.path.join(model_dir, 'robot_game.py'))
+            shutil.copyfile('drl_robot_helpers.py', os.path.join(model_dir, 'robot_game_helpers.py'))
         else:
             with open(os.path.join(model_dir, 'params.json')) as fp:
                 params_ = json.load(fp)
@@ -213,7 +217,7 @@ def main():
         num_episodes = 1000  # number of games to train
         t = time.time()
         avg_score = []
-        for e in range(1, num_episodes+1):
+        for e in range(1, num_episodes + 1):
             t0 = time.time()
 
             # create new game
@@ -257,7 +261,8 @@ def main():
                     scores = []
                     t_opp = time.time()
                     for _ in range(num_games):
-                        game = rg_game.Game([player1, player3], record_actions=False, record_history=False, print_info=False)
+                        game = rg_game.Game([player1, player3], record_actions=False, record_history=False,
+                                            print_info=False)
                         game.run_all_turns()
                         # get final score
                         scores.append(game.get_scores())
@@ -268,10 +273,11 @@ def main():
                     score = sum(s[0] for s in scores) / len(scores)
                     opp_score = sum(s[1] for s in scores) / len(scores)
                     opponent_average_score = score - opp_score
-                    logger.info(f'vs. {opponent}: {wins}-{loss}-{draw}, average score = {score} - {opp_score} = {opponent_average_score}, '
-                                f'{t_opp:.1f} s.')
+                    logger.info(
+                        f'vs. {opponent}: {wins}-{loss}-{draw}, average score = {score} - {opp_score} = {opponent_average_score}, '
+                        f'{t_opp:.1f} s.')
                     robot1.exploit = False
-                    #Add avg score
+                    # Add avg score
                     avg_score.append(opponent_average_score)
 
         logger.info(f'{(time.time() - t) / num_episodes:.3f} s. per episode')
@@ -285,6 +291,7 @@ def main():
 
         with open(os.path.join(model_dir, 'average_scores.json'), 'w') as fp:
             json.dump(avg_score_dict, fp)
+
 
 if __name__ == '__main__':
     main()
