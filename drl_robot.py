@@ -25,7 +25,7 @@ class Robot(DRLRobot):
 
     @staticmethod
     def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=(32, 32), activation='relu',
-                     reg_const=0, momentum=0.99, output_activation='linear', conv_layers=(32,32)):
+                     reg_const=0, momentum=0.99, output_activation='linear'):
         """
         Build a keras model that takes the game state as input and produces the expected future reward corresponding
         to each possible action.
@@ -78,6 +78,13 @@ class Robot(DRLRobot):
         return False
 
     @staticmethod
+    def ally_at_loc(game, robot, loc):
+        if loc in game.robots:
+            if game.robots[loc].player_id == robot.player_id:
+                return True
+        return False
+
+    @staticmethod
     def get_state(game, robot):
         """
         Return a numpy 'nd-array' representing this robot's state within the game.
@@ -87,15 +94,31 @@ class Robot(DRLRobot):
         :return: The robot's state as a numpy array
         """
 
+        offsets = ((-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2),
+                   (-2, 1), (-1, 1), (0, 1), (1, -1), (2, 1),
+                   (-2, 0), (-1, 0), (1, -1), (2, 0),
+                   (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
+                   (-2, -2), (-1, -2), (0, -2), (1, -1), (2, -2))
+
+        x, y = robot.location
+        locs_around = [(x + dx, y + dy) for dx, dy in offsets]
+        locs_around = [a_loc for a_loc in locs_around]
+
         # state = [on spawn?, spawn turn?, enemy_down?, enemy_right?, enemy_up?, enemy_left?]
         state = [
-            'spawn' in rg.loc_types(robot.location),
-            game.turn % 10 == 0,
-        ] + [
-            Robot.enemy_at_loc(game, robot, loc) for loc in rg.locs_around(robot.location)
-        ]
+                    'spawn' in rg.loc_types(robot.location),
+                    game.turn % 10 == 0,
+                ] + [
+                    #game.robots[loc].hp if Robot.enemy_at_loc(game, robot, loc) else 0 for loc in locs_around
+                    game.robots[loc].hp if Robot.enemy_at_loc(game, robot, loc) else 0 for loc in locs_around
+                ] + [
+                    game.robots[loc].hp if Robot.ally_at_loc(game, robot, loc) else 0 for loc in locs_around
+                ] + [
+                robot.hp / 50]
 
         return np.array(state, dtype=np.float32)
+
+        #return np.array(state, dtype=np.float32)
 
     @staticmethod
     def get_reward(game, robot):
@@ -147,17 +170,17 @@ def main():
 
     self_play = True
     params = {
-        'learning_rate': [0.001],
-        'conv_layers': [[64,128]],
-        'layers': [[256,128,64,32,16]],
+        'learning_rate': [0.0001,0.001],
+        #'conv_layers': [[64,128]],
+        'layers': [[256,128,64],[512,256,128,64],[256,128,64,32]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
         'memory_size': [10000],  # roughly 10 games worth of actions
         'reg_const': [0.000],
         'epsilon_decay': [0.99],
-        'output_activation': ['tanh','softmax'],
-        'state_size': [(6,)],
+        'output_activation': ['tanh'],
+        'state_size': [(51,)],
         'action_size': [10],
     }
 
@@ -202,15 +225,30 @@ def main():
             player2, robot2 = get_player(opponent)
             player3, robot3 = None, None
 
+        # check_states = np.array([
+        #     [0, 0, 0, 0, 0, 0],
+        #     [0, 1, 0, 0, 0, 0],
+        #     [1, 0, 0, 0, 0, 0],
+        #     [1, 1, 0, 0, 0, 0],
+        #     [0, 0, 1, 0, 0, 0],
+        #     [0, 0, 0, 1, 0, 0],
+        #     [0, 0, 0, 0, 1, 0],
+        #     [0, 0, 0, 0, 0, 1],
+        # ], dtype=np.float32)
+
         check_states = np.array([
-            [0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0, 0],
-            [1, 0, 0, 0, 0, 0],
-            [1, 1, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 1, 0],
-            [0, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+
         ], dtype=np.float32)
 
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
@@ -283,6 +321,7 @@ def main():
                     #Test best score and save best
                     if opponent_average_score > best_test_score:
                         robot1.save()
+                        best_test_score = opponent_average_score
 
 
 
