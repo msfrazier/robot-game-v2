@@ -118,6 +118,7 @@ class Robot(DRLRobot):
             # death
             reward += -1.0
         elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:
+            # gtfo of spawn
             reward += -1
         # elif game.turn == 99:
         # survive
@@ -141,13 +142,13 @@ def main():
 
     self_play = True
     params = {
-        'learning_rate': [0.01],
-        'layers': [[256, 64, 32]],
+        'learning_rate': [0.001],
+        'layers': [[2048, 1024, 512]],
         'activation': ['relu'],
         'momentum': [0.99],
-        'mini_batch_size': [1000],  # roughly one game's worth of actions
-        'memory_size': [10000],  # roughly 10 games worth of actions
-        'reg_const': [0.000],
+        'mini_batch_size': [5000],  # roughly 5 game's worth of actions
+        'memory_size': [50000],  # roughly 50 games worth of actions
+        'reg_const': [0.0001],
         'epsilon_decay': [0.99],
         'output_activation': ['sigmoid'],
         'state_size': [(27,)],
@@ -213,7 +214,7 @@ def main():
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
 
         average_score = 0
-        num_episodes = 1000  # number of games to train
+        num_episodes = 2000  # number of games to train
         t = time.time()
         avg_score = []
         for e in range(1, num_episodes + 1):
