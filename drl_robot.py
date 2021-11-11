@@ -24,7 +24,7 @@ class Robot(DRLRobot):
                          epsilon_decay=epsilon_decay, memory_size=memory_size, **model_params)
 
     @staticmethod
-    def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=(32, 32), activation='relu',
+    def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=((32, .1), (32, .1)), activation='relu',
                      reg_const=0, momentum=0.99, output_activation='linear'):
         """
         Build a keras model that takes the game state as input and produces the expected future reward corresponding
@@ -36,10 +36,10 @@ class Robot(DRLRobot):
 
         model = Sequential()
         model.add(Input(shape=state_size))
-        for units in layers:
+        for units, dropout in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
             model.add(BatchNormalization(momentum=momentum))
-            model.add(GaussianDropout(.1))
+            model.add(GaussianDropout(dropout))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
         model.add(BatchNormalization(momentum=momentum))
         model.compile(loss='mse', optimizer=Adamax(learning_rate=learning_rate))
@@ -99,7 +99,7 @@ class Robot(DRLRobot):
                     'spawn' in rg.loc_types(robot.location),
                     game.turn % 10 == 0,
                 ] + [
-                    Robot.enemy_at_loc(game, robot, loc) for loc in locs_around
+                    game.robots[loc].hp if Robot.enemy_at_loc(game, robot, loc) else 0 for loc in locs_around
                 ] + [robot.hp / 50]
 
         return np.array(state, dtype=np.float32)
@@ -116,16 +116,15 @@ class Robot(DRLRobot):
         if robot.hp <= 0:
             # death
             return -1.0
-        elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:
-           return -1
+        #elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:
+        #   return -1
         # elif game.turn == 99:
             # survive
             # return 1.0
         else:
             # otherwise
             # return 0.0
-            return robot.damage_caused / robot.hp
-            # robot.hp / 50
+            return robot.damage_caused / robot.hp + robot.hp / 50
 
 
 def main():
@@ -142,7 +141,7 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.01],
-        'layers': [[128, 64, 128]],
+        'layers': [[(256, .2), (256, .1), (256, .1), (256, .1)]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
