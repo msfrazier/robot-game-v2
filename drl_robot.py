@@ -7,7 +7,7 @@ import time
 import numpy as np
 import rgkit.rg as rg
 from rgkit import game as rg_game
-from tensorflow.keras.layers import Dense, Input, BatchNormalization
+from tensorflow.keras.layers import Dense, Input, BatchNormalization, Dropout
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam, Adamax
 from tensorflow.keras.regularizers import l2
@@ -24,8 +24,8 @@ class Robot(DRLRobot):
                          epsilon_decay=epsilon_decay, memory_size=memory_size, **model_params)
 
     @staticmethod
-    def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=(256, 128, 64), activation='relu',
-                     reg_const=0, momentum=0.99, output_activation='tanh'):
+    def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=(512, 256, 64), activation='relu',
+                     reg_const=0.0001, momentum=0.99, output_activation='sigmoid'):
         """
         Build a keras model that takes the game state as input and produces the expected future reward corresponding
         to each possible action.
@@ -38,6 +38,7 @@ class Robot(DRLRobot):
         model.add(Input(shape=state_size))
         for units in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
+            model.add(Dropout(0.1))
             # model.add(BatchNormalization(momentum=momentum))
         # model.add(BatchNormalization(momentum=momentum))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
@@ -84,11 +85,15 @@ class Robot(DRLRobot):
         :return: The robot's state as a numpy array
         """
 
-        offsets = ((-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2),
-                   (-2, 1), (-1, 1), (0, 1), (1, -1), (2, 1),
-                   (-2, 0), (-1, 0), (1, -1), (2, 0),
-                   (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
-                   (-2, -2), (-1, -2), (0, -2), (1, -1), (2, -2))
+        offsets = (
+                   (-3, 3), (-2, 3), (-1, 3), (0, 3), (1, 3), (2, 3), (3, 3),
+                   (-3, 2), (-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2), (3, 2),
+                   (-3, 1), (-2, 1), (-1, 1), (0, 1), (1, -1), (2, 1), (3, 1),
+                   (-3, 0), (-2, 0), (-1, 0), (1, -1), (2, 0), (3, 0),
+                   (-3, -1), (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1), (3, -1),
+                   (-3, -2), (-2, -2), (-1, -2), (0, -2), (1, -1), (2, -2), (3, -2),
+                   (-3, -3), (-2, -3), (-1, -3), (0, -3), (1, -3), (2, -3), (3, -3),
+                   )
 
         x, y = robot.location
         locs_around = [(x + dx, y + dy) for dx, dy in offsets]
@@ -114,19 +119,20 @@ class Robot(DRLRobot):
         :return: a number indicating reward (higher is better)
         """
         reward = 0
-        if robot.hp <= 0:
-            # death
+        if robot.hp <= 0:  # Robot has died
+            reward += -1.0  # + (0.1 * robot.damage_caused)
+        elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:  # Robot is in a spawn location
             reward += -1.0
-        elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:
-            # gtfo of spawn
-            reward += -1
-        # elif game.turn == 99:
-        # survive
-        # reward += 1.0
-        else:
-            # otherwise
-            reward += robot.damage_caused / robot.hp
-        return reward  # / (game.turn * 0.99)  Honestly not sure about this one. Trying to reduce rewards later in games
+        elif game.turn >= 50:  # Encourage staying near center in late game
+            if rg.wdist(robot.location, rg.CENTER_POINT) == 0:
+                reward += 0.6
+            else:
+                reward += (1 / rg.wdist(robot.location, rg.CENTER_POINT))
+        if not(robot.hp <= 0):  # Add damage dealt if bot is alive
+            reward += (2 * robot.damage_caused) / robot.hp
+            if game.turn == 99:  # Stay alive to the end
+                reward += 10
+        return reward
 
 
 def main():
@@ -143,15 +149,15 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.001],
-        'layers': [[2048, 1024, 512]],
+        'layers': [[512, 256, 64]],
         'activation': ['relu'],
         'momentum': [0.99],
-        'mini_batch_size': [5000],  # roughly 5 game's worth of actions
-        'memory_size': [50000],  # roughly 50 games worth of actions
-        'reg_const': [0.0001],
+        'mini_batch_size': [1000],  # roughly 1 game's worth of actions
+        'memory_size': [10000],  # roughly 10 games worth of actions
+        'reg_const': [0.000],
         'epsilon_decay': [0.99],
         'output_activation': ['sigmoid'],
-        'state_size': [(27,)],
+        'state_size': [(51,)],
         'action_size': [10],
     }
 
@@ -169,7 +175,7 @@ def main():
         if len(sys.argv) > 2:
             opponent = sys.argv[2]
         else:
-            opponent = 'sfpar'
+            opponent = 'dullabob'
 
         if not os.path.isdir(model_dir):
             print(f'Creating {model_dir}')
@@ -197,24 +203,24 @@ def main():
             player3, robot3 = None, None
 
         check_states = np.array([
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, .02],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .02],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .02],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .02],
 
         ], dtype=np.float32)
 
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
 
         average_score = 0
-        num_episodes = 2000  # number of games to train
+        num_episodes = 1000  # number of games to train
         t = time.time()
         avg_score = []
         for e in range(1, num_episodes + 1):
