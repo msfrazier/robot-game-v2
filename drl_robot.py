@@ -7,7 +7,7 @@ import time
 import numpy as np
 import rgkit.rg as rg
 from rgkit import game as rg_game
-from tensorflow.keras.layers import Dense, Input, BatchNormalization
+from tensorflow.keras.layers import Dense, Input, BatchNormalization, Conv1D, Flatten
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam, Adamax
 from tensorflow.keras.regularizers import l2
@@ -25,7 +25,7 @@ class Robot(DRLRobot):
 
     @staticmethod
     def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=(32, 32), activation='relu',
-                     reg_const=0, momentum=0.99, output_activation='linear'):
+                     reg_const=0, momentum=0.99, output_activation='linear', conv_layers=(32,32)):
         """
         Build a keras model that takes the game state as input and produces the expected future reward corresponding
         to each possible action.
@@ -36,10 +36,13 @@ class Robot(DRLRobot):
 
         model = Sequential()
         model.add(Input(shape=state_size))
+        # for units in conv_layers:
+        #     model.add(Conv1D(filters=units,kernel_size=3))
+        # Flatten()
         for units in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
-            model.add(BatchNormalization(momentum=momentum))
-        model.add(BatchNormalization(momentum=momentum))
+            #model.add(BatchNormalization(momentum=momentum))
+        #model.add(BatchNormalization(momentum=momentum))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
         model.compile(loss='mse', optimizer=Adam(learning_rate=learning_rate))
         return model
@@ -103,15 +106,32 @@ class Robot(DRLRobot):
         :param robot: the robot
         :return: a number indicating reward (higher is better)
         """
-        if robot.hp <= 0:
-            # death
-            return -1.0
-        elif game.turn == 99:
-            # survive
-            return 1.0
-        else:
-            # otherwise
-            return 0.0
+        reward = 0
+        #punish = 0
+        #robots = game.robots
+
+        for key in game.robots:
+            bot = game.robots.get(key)
+            if bot.get('player_id') == 0:
+                reward += 1
+            else:
+                reward -= 1
+        return reward
+
+        # if robot['player_id']==0:
+        #     return 1
+        # else:
+        #     return -1
+
+        # if robot.hp <= 0:
+        #     # death
+        #     return -1.0
+        # elif game.turn == 99:
+        #     # survive
+        #     return 1.0
+        # else:
+        #     # otherwise
+        #     return 0.0
 
 
 def main():
@@ -128,16 +148,15 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.001],
-        'layers': [[128,64,32,16]],
+        'conv_layers': [[64,128]],
+        'layers': [[256,128,64,32,16]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
         'memory_size': [10000],  # roughly 10 games worth of actions
-        'reg_const': [0.000
-            ,0.0001,0.001
-                      ],
+        'reg_const': [0.000],
         'epsilon_decay': [0.99],
-        'output_activation': ['tanh'],
+        'output_activation': ['tanh','softmax'],
         'state_size': [(6,)],
         'action_size': [10],
     }
@@ -200,6 +219,7 @@ def main():
         num_episodes = 1000  # number of games to train
         t = time.time()
         avg_score = []
+        best_test_score= -np.inf
         for e in range(1, num_episodes+1):
             t0 = time.time()
 
@@ -232,7 +252,7 @@ def main():
 
             # save the model every 50 games.
             if e % 50 == 0:
-                robot1.save()
+                #robot1.save()
                 # log the expected future reward for actions in two states
                 logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
                 if self_play:
@@ -260,6 +280,11 @@ def main():
                     robot1.exploit = False
                     #Add avg score
                     avg_score.append(opponent_average_score)
+                    #Test best score and save best
+                    if opponent_average_score > best_test_score:
+                        robot1.save()
+
+
 
         logger.info(f'{(time.time() - t) / num_episodes:.3f} s. per episode')
 
