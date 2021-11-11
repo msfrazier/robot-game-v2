@@ -284,6 +284,8 @@ def main():
 
         counter = 0
         avg_score_dict = {}
+        avg_score_dict['testing_bot'] = opponent
+        avg_score_dict['Play_against_self'] = self_play
         while counter < len(avg_score):
             avg_score_dict[f'score_{counter}'] = avg_score[counter]
             counter += 1
