@@ -104,7 +104,7 @@ class Robot(DRLRobot):
                     'spawn' in rg.loc_types(robot.location),
                     game.turn % 10 == 0,
                 ] + [
-                    Robot.enemy_at_loc(game, robot, loc) for loc in locs_around
+                game.robots[loc].hp if Robot.enemy_at_loc(game, robot, loc) else 0 for loc in locs_around
                 ] + [robot.hp / 50]
 
         return np.array(state, dtype=np.float32)
@@ -123,20 +123,20 @@ class Robot(DRLRobot):
             reward -= 5.0
         elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:  # Robot is in a spawn location
             reward -= 5.0
-        elif game.turn >= 50:  # Encourage staying alive and near center in late game
+        elif game.turn >= 25:  # Encourage staying alive and near center
             if rg.dist(robot.location, rg.CENTER_POINT) == 0:
                 reward += game.turn / 100
             else:
                 reward += ((game.turn / 100) / rg.dist(robot.location, rg.CENTER_POINT))
-            reward += robot.damage_caused / robot.hp
+            reward += robot.damage_caused + (robot.hp / 50)
         elif game.turn % 9 == 0:  # Staying alive until the next spawn turn
             reward += 2
-            reward += robot.damage_caused / robot.hp
+            reward += robot.damage_caused + (robot.hp / 50)
         elif not(robot.hp <= 0):  # Add damage dealt if bot is alive
-            reward += robot.damage_caused / robot.hp
+            reward += robot.damage_caused + (robot.hp / 50)
         elif game.turn == 99:  # Stay alive to the end
             reward += 10
-            reward += 5 * robot.damage_caused / robot.hp
+            reward += 5 * robot.damage_caused + (robot.hp / 50)
         return reward
 
 

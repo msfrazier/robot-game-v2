@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2f4aefdd-256e-4aed-82c4-48f8651b4545" name="Changes" comment="Reworked get_reward to consider damage at all times. Tweaked reward amounts. Logic is ugly but bot is scoring more. Still loses but not as badly.">
+    <list default="true" id="c4e611fc-3ec8-4551-a227-e1f8cee06a45" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/drl_robot.py" beforeDir="false" afterPath="$PROJECT_DIR$/drl_robot.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -12,23 +13,10 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="Python Script" />
-      </list>
-    </option>
-  </component>
   <component name="Git.Settings">
-    <option name="RECENT_BRANCH_BY_REPOSITORY">
-      <map>
-        <entry key="$PROJECT_DIR$" value="Maclean" />
-      </map>
-    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectId" id="20kgNebKGhKl8wWAcqQLsY0GduX" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectId" id="20jDlTmRaDQI0QygsaWOcX2iZeU" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -36,22 +24,21 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunManager">
     <configuration name="drl_robot" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="robot-game-v2" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="" />
+      <option name="SDK_HOME" value="C:\Users\asus\anaconda3\envs\cs5440\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
+      <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/drl_robot.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -70,60 +57,12 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="2f4aefdd-256e-4aed-82c4-48f8651b4545" name="Changes" comment="" />
-      <created>1636593960394</created>
+      <changelist id="c4e611fc-3ec8-4551-a227-e1f8cee06a45" name="Changes" comment="" />
+      <created>1636549258465</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1636593960394</updated>
+      <updated>1636549258465</updated>
     </task>
-    <task id="LOCAL-00001" summary="Initial commit">
-      <created>1636653501992</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1636653501992</updated>
-    </task>
-    <task id="LOCAL-00002" summary="Slight changes to model architecture and hyperparams">
-      <created>1636659999945</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1636659999952</updated>
-    </task>
-    <task id="LOCAL-00003" summary="Different model architecture, added dullabob.py as an opponent option, further modified get_reward but no tangible progress vs. sfpar">
-      <created>1636672173566</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1636672173566</updated>
-    </task>
-    <task id="LOCAL-00004" summary="Reworked get_reward to consider damage at all times. Tweaked reward amounts. Logic is ugly but bot is scoring more. Still loses but not as badly.">
-      <created>1636680743894</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1636680743894</updated>
-    </task>
-    <option name="localTasksCounter" value="5" />
     <servers />
-  </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
-    <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="Initial commit" />
-    <MESSAGE value="Slight changes to model architecture and hyperparams" />
-    <MESSAGE value="Different model architecture, added dullabob.py as an opponent option, further modified get_reward but no tangible progress vs. sfpar" />
-    <MESSAGE value="Reworked get_reward to consider damage at all times. Tweaked reward amounts. Logic is ugly but bot is scoring more. Still loses but not as badly." />
-    <option name="LAST_COMMIT_MESSAGE" value="Reworked get_reward to consider damage at all times. Tweaked reward amounts. Logic is ugly but bot is scoring more. Still loses but not as badly." />
   </component>
 </project>
