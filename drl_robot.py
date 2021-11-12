@@ -38,11 +38,9 @@ class Robot(DRLRobot):
         model.add(Input(shape=state_size))
         for units, dropout in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
-            model.add(BatchNormalization(momentum=momentum))
             model.add(GaussianDropout(dropout))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
-        model.add(BatchNormalization(momentum=momentum))
-        model.compile(loss='mse', optimizer=Adamax(learning_rate=learning_rate))
+        model.compile(loss='mse', optimizer=Adam(learning_rate=learning_rate))
         return model
 
     @staticmethod
@@ -121,10 +119,11 @@ class Robot(DRLRobot):
         elif game.turn == 99:
             # survive
             return 1.0
-        else:
+        if robot.damage_taken > 10:
+            return -1
             # otherwise
-            return 0.0
-            # return robot.damage_caused / robot.hp + robot.hp / 50
+        else:
+            return bool(robot.damage_caused) - bool(robot.damage_taken)
 
 
 def main():
@@ -141,14 +140,14 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.01],
-        'layers': [[(64, .1), (128, .1), (256, .1), (128, .1)]],
+        'layers': [[(128, .0), (256, .0), (256, .0), (128, .0)]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
         'memory_size': [10000],  # roughly 10 games worth of actions
         'reg_const': [0.000],
         'epsilon_decay': [0.99],
-        'output_activation': ['tanh'],
+        'output_activation': ['linear'],
         'state_size': [(27,)],
         'action_size': [10],
     }
