@@ -24,7 +24,7 @@ class Robot(DRLRobot):
                          epsilon_decay=epsilon_decay, memory_size=memory_size, **model_params)
 
     @staticmethod
-    def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=(1024, 512, 256), activation='relu',
+    def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=(2048, 1024, 512), activation='relu',
                      reg_const=0.0001, momentum=0.99, output_activation='sigmoid'):
         """
         Build a keras model that takes the game state as input and produces the expected future reward corresponding
@@ -38,7 +38,7 @@ class Robot(DRLRobot):
         model.add(Input(shape=state_size))
         for units in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
-            model.add(Dropout(0.1))
+            model.add(Dropout(0.2))
             # model.add(BatchNormalization(momentum=momentum))
         # model.add(BatchNormalization(momentum=momentum))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
@@ -136,7 +136,7 @@ class Robot(DRLRobot):
             reward += robot.damage_caused / robot.hp
         elif game.turn == 99:  # Stay alive to the end
             reward += 10
-            reward += 5 * (robot.damage_caused / robot.hp)
+            reward += 5 * robot.damage_caused / robot.hp
         return reward
 
 
@@ -154,7 +154,7 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.001],
-        'layers': [[1024, 512, 256]],
+        'layers': [[2048, 1024, 512]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [5000],  # roughly 5 game's worth of actions
@@ -225,7 +225,7 @@ def main():
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
 
         average_score = 0
-        num_episodes = 5000  # number of games to train
+        num_episodes = 2000  # number of games to train
         t = time.time()
         avg_score = []
         for e in range(1, num_episodes + 1):
