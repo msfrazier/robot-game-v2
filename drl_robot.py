@@ -6,6 +6,7 @@ import sys
 import time
 import numpy as np
 import rgkit.rg as rg
+import assemble_results
 from rgkit import game as rg_game
 from tensorflow.keras.layers import Dense, Input, BatchNormalization, Conv1D, Flatten
 from tensorflow.keras.models import Sequential
@@ -131,30 +132,30 @@ class Robot(DRLRobot):
         """
         reward = 0
         #punish = 0
-        #robots = game.robots
-
-        for key in game.robots:
-            bot = game.robots.get(key)
-            if bot.get('player_id') == 0:
-                reward += 1
-            else:
-                reward -= 1
-        return reward
+        # robots = game.robots
+        #
+        # for key in game.robots:
+        #     bot = game.robots.get(key)
+        #     if bot.get('player_id') == 0:
+        #         reward += 1
+        #     else:
+        #         reward -= 1
+        # return reward
 
         # if robot['player_id']==0:
         #     return 1
         # else:
         #     return -1
 
-        # if robot.hp <= 0:
-        #     # death
-        #     return -1.0
-        # elif game.turn == 99:
-        #     # survive
-        #     return 1.0
-        # else:
-        #     # otherwise
-        #     return 0.0
+        if robot.hp <= 0:
+            # death
+            return -1.0
+        elif game.turn == 99:
+            # survive
+            return 1.0
+        else:
+            # otherwise
+            return (robot.damage_caused - robot.damage_taken)/60
 
 
 def main():
@@ -170,9 +171,9 @@ def main():
 
     self_play = True
     params = {
-        'learning_rate': [0.0001,0.001],
+        'learning_rate': [0.001],
         #'conv_layers': [[64,128]],
-        'layers': [[256,128,64],[512,256,128,64],[256,128,64,32]],
+        'layers': [[256,128,64,32]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
@@ -198,7 +199,8 @@ def main():
         if len(sys.argv) > 2:
             opponent = sys.argv[2]
         else:
-            opponent = 'sfpar'
+            opponent = 'Simple'
+            opponent3 = None, None
 
         if not os.path.isdir(model_dir):
             print(f'Creating {model_dir}')
@@ -215,15 +217,20 @@ def main():
 
         logger.info(f'{model_dir} vs. {opponent}, self_play={self_play}')
 
+        #New Robot
         robot1 = Robot(model_dir=model_dir, exploit=False, **params_)
         player1 = rg_game.Player(robot=robot1)
+
+        #Use existing robot
+        # robot1 = Robot(model_dir='drl_robot\\20211112145151', exploit=False, **params_)
+        # player1 = rg_game.Player(robot=robot1)
 
         if self_play:
             player2 = rg_game.Player(robot=robot1)
             player3, robot3 = get_player(opponent)
         else:
             player2, robot2 = get_player(opponent)
-            player3, robot3 = None, None
+            player3, robot3 = get_player(opponent3)
 
         # check_states = np.array([
         #     [0, 0, 0, 0, 0, 0],
@@ -254,7 +261,7 @@ def main():
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
 
         average_score = 0
-        num_episodes = 1000  # number of games to train
+        num_episodes = 10000  # number of games to train
         t = time.time()
         avg_score = []
         best_test_score= -np.inf
@@ -321,6 +328,17 @@ def main():
                     #Test best score and save best
                     if opponent_average_score > best_test_score:
                         robot1.save()
+
+                        counter = 0
+                        avg_score_dict = {}
+                        avg_score_dict['testing_bot'] = opponent
+                        avg_score_dict['Play_against_self'] = self_play
+                        while counter < len(avg_score):
+                            avg_score_dict[f'score_{counter}'] = avg_score[counter]
+                            counter += 1
+                        avg_score_dict['mean'] = np.mean(avg_score)
+
+                        assemble_results
                         best_test_score = opponent_average_score
 
 

@@ -32,7 +32,7 @@ class GameState(object):
         else:
             self._get_spawn_locations = self._get_spawn_locations_random
 
-    def add_robot(self, loc, player_id, damage_caused=0, state=None, action=None, hp=None, robot_id=None):
+    def add_robot(self, loc, player_id, damage_caused=0, damage_taken=0, state=None, action=None, hp=None, robot_id=None):
         # RMP: additional robot fields to parameter list here.
         if hp is None:
             hp = settings.robot_hp
@@ -48,6 +48,7 @@ class GameState(object):
             'robot_id': robot_id,
             # RMP: additional robot fields here.
             'damage_caused': damage_caused,
+            'damage_taken': damage_taken,
             'state': state,
             'action': action,
             # RMP: additional fields to fill at the start of next turn
@@ -315,13 +316,16 @@ class GameState(object):
             # is this a new robot?
             if delta_info.hp > 0:
                 robot_id = self.robots[loc].robot_id
+                damage_taken = delta_info.hp - max(delta_info.hp_end, 0)
             else:
                 robot_id = None
+                damage_taken = 0
 
             # RMP: additional fields as input arguments here
+
             new_state.add_robot(delta_info.loc_end, delta_info.player_id,
                                 # RMP: new fields here:
-                                delta_info.damage_caused, delta_info.state, delta_info.action,
+                                delta_info.damage_caused, damage_taken, delta_info.state, delta_info.action,
                                 delta_info.hp_end, robot_id)
 
         return new_state
