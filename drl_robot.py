@@ -136,7 +136,7 @@ class Robot(DRLRobot):
             reward += robot.damage_caused + (robot.hp / 50)
         elif game.turn == 99:  # Stay alive to the end
             reward += 10
-            reward += 5 * robot.damage_caused + (robot.hp / 50)
+            reward += 5 * (robot.damage_caused + (robot.hp / 50))
         return reward
 
 
@@ -225,7 +225,7 @@ def main():
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
 
         average_score = 0
-        num_episodes = 2000  # number of games to train
+        num_episodes = 1000  # number of games to train
         t = time.time()
         avg_score = []
         for e in range(1, num_episodes + 1):
