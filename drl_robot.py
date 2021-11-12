@@ -18,13 +18,13 @@ from tensorflow_core.python.keras.backend import clear_session
 
 
 class Robot(DRLRobot):
-    def __init__(self, model_dir='.', exploit=True, mini_batch_size=1000, memory_size=10000, epsilon_decay=0.99,
+    def __init__(self, model_dir='.', exploit=True, mini_batch_size=5000, memory_size=10000, epsilon_decay=0.99,
                  **model_params):
         super().__init__(model_dir=model_dir, exploit=exploit, mini_batch_size=mini_batch_size,
                          epsilon_decay=epsilon_decay, memory_size=memory_size, **model_params)
 
     @staticmethod
-    def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=(512, 256, 64), activation='relu',
+    def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=(1024, 512, 256), activation='relu',
                      reg_const=0.0001, momentum=0.99, output_activation='sigmoid'):
         """
         Build a keras model that takes the game state as input and produces the expected future reward corresponding
@@ -120,18 +120,23 @@ class Robot(DRLRobot):
         """
         reward = 0
         if robot.hp <= 0:  # Robot has died
-            reward += -1.0  # + (0.1 * robot.damage_caused)
+            reward -= 5.0
         elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:  # Robot is in a spawn location
-            reward += -1.0
-        elif game.turn >= 50:  # Encourage staying near center in late game
-            if rg.wdist(robot.location, rg.CENTER_POINT) == 0:
-                reward += 0.6
+            reward -= 5.0
+        elif game.turn >= 50:  # Encourage staying alive and near center in late game
+            if rg.dist(robot.location, rg.CENTER_POINT) == 0:
+                reward += game.turn / 100
             else:
-                reward += (1 / rg.wdist(robot.location, rg.CENTER_POINT))
-        if not(robot.hp <= 0):  # Add damage dealt if bot is alive
-            reward += (2 * robot.damage_caused) / robot.hp
-            if game.turn == 99:  # Stay alive to the end
-                reward += 10
+                reward += ((game.turn / 100) / rg.dist(robot.location, rg.CENTER_POINT))
+            reward += robot.damage_caused / robot.hp
+        elif game.turn % 9 == 0:  # Staying alive until the next spawn turn
+            reward += 2
+            reward += robot.damage_caused / robot.hp
+        elif not(robot.hp <= 0):  # Add damage dealt if bot is alive
+            reward += robot.damage_caused / robot.hp
+        elif game.turn == 99:  # Stay alive to the end
+            reward += 10
+            reward += 5 * (robot.damage_caused / robot.hp)
         return reward
 
 
@@ -149,10 +154,10 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.001],
-        'layers': [[512, 256, 64]],
+        'layers': [[1024, 512, 256]],
         'activation': ['relu'],
         'momentum': [0.99],
-        'mini_batch_size': [1000],  # roughly 1 game's worth of actions
+        'mini_batch_size': [5000],  # roughly 5 game's worth of actions
         'memory_size': [10000],  # roughly 10 games worth of actions
         'reg_const': [0.000],
         'epsilon_decay': [0.99],
@@ -175,7 +180,7 @@ def main():
         if len(sys.argv) > 2:
             opponent = sys.argv[2]
         else:
-            opponent = 'dullabob'
+            opponent = 'sfpar'
 
         if not os.path.isdir(model_dir):
             print(f'Creating {model_dir}')
@@ -220,7 +225,7 @@ def main():
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
 
         average_score = 0
-        num_episodes = 1000  # number of games to train
+        num_episodes = 5000  # number of games to train
         t = time.time()
         avg_score = []
         for e in range(1, num_episodes + 1):
