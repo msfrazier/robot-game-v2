@@ -116,15 +116,15 @@ class Robot(DRLRobot):
         if robot.hp <= 0:
             # death
             return -1.0
-        #elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:
+        # elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:
         #   return -1
-        # elif game.turn == 99:
+        elif game.turn == 99:
             # survive
-            # return 1.0
+            return 1.0
         else:
             # otherwise
-            # return 0.0
-            return robot.damage_caused / robot.hp + robot.hp / 50
+            return 0.0
+            # return robot.damage_caused / robot.hp + robot.hp / 50
 
 
 def main():
@@ -141,7 +141,7 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.01],
-        'layers': [[(256, .2), (256, .1), (256, .1), (256, .1)]],
+        'layers': [[(64, .1), (128, .1), (256, .1), (128, .1)]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
@@ -157,7 +157,6 @@ def main():
     params_grid = list(ParameterGrid(params))
 
     for params_ in params_grid:
-        print(params_)
 
         if len(sys.argv) > 1:
             model_dir = sys.argv[1]
@@ -182,6 +181,7 @@ def main():
                 params_ = json.load(fp)
 
         logger = get_logger(model_dir)
+        #logger.setLevel(40)
 
         logger.info(f'{model_dir} vs. {opponent}, self_play={self_play}')
 
@@ -292,6 +292,7 @@ def main():
 
         with open(os.path.join(model_dir, 'average_scores.json'), 'w') as fp:
             json.dump(avg_score_dict, fp)
+        print(avg_score_dict)
 
 
 if __name__ == '__main__':
