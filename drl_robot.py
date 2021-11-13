@@ -155,7 +155,11 @@ class Robot(DRLRobot):
             return 1.0
         else:
             # otherwise
-            return (robot.damage_caused - robot.damage_taken)/60
+            #return robot.damage_caused - robot.damage_taken
+            if robot.damage_caused > robot.damage_taken:
+                return 1.0
+            else:
+                return -1.0
 
 
 def main():
@@ -169,7 +173,7 @@ def main():
             # Memory growth must be set before GPUs have been initialized
             print(e)
 
-    self_play = True
+    self_play = False
     params = {
         'learning_rate': [0.001],
         #'conv_layers': [[64,128]],
@@ -199,7 +203,7 @@ def main():
         if len(sys.argv) > 2:
             opponent = sys.argv[2]
         else:
-            opponent = 'Simple'
+            opponent = 'random_with_attack'
             opponent3 = None, None
 
         if not os.path.isdir(model_dir):
@@ -218,19 +222,19 @@ def main():
         logger.info(f'{model_dir} vs. {opponent}, self_play={self_play}')
 
         #New Robot
-        robot1 = Robot(model_dir=model_dir, exploit=False, **params_)
-        player1 = rg_game.Player(robot=robot1)
+        # robot1 = Robot(model_dir=model_dir, exploit=False, **params_)
+        # player1 = rg_game.Player(robot=robot1)
 
         #Use existing robot
-        # robot1 = Robot(model_dir='drl_robot\\20211112145151', exploit=False, **params_)
-        # player1 = rg_game.Player(robot=robot1)
+        robot1 = Robot(model_dir='drl_robot\\20211113222803', exploit=False, **params_)
+        player1 = rg_game.Player(robot=robot1)
 
         if self_play:
             player2 = rg_game.Player(robot=robot1)
             player3, robot3 = get_player(opponent)
         else:
             player2, robot2 = get_player(opponent)
-            player3, robot3 = get_player(opponent3)
+            player3, robot3 = None,None
 
         # check_states = np.array([
         #     [0, 0, 0, 0, 0, 0],
@@ -261,7 +265,7 @@ def main():
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
 
         average_score = 0
-        num_episodes = 10000  # number of games to train
+        num_episodes = 1000  # number of games to train
         t = time.time()
         avg_score = []
         best_test_score= -np.inf
@@ -297,7 +301,7 @@ def main():
 
             # save the model every 50 games.
             if e % 50 == 0:
-                #robot1.save()
+                robot1.save()
                 # log the expected future reward for actions in two states
                 logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
                 if self_play:
@@ -326,8 +330,8 @@ def main():
                     #Add avg score
                     avg_score.append(opponent_average_score)
                     #Test best score and save best
-                    if opponent_average_score > best_test_score:
-                        robot1.save()
+                    if opponent_average_score > best_test_score and self_play==True:
+                        #robot1.save()
 
                         counter = 0
                         avg_score_dict = {}
@@ -345,17 +349,18 @@ def main():
 
         logger.info(f'{(time.time() - t) / num_episodes:.3f} s. per episode')
 
-        counter = 0
-        avg_score_dict = {}
-        avg_score_dict['testing_bot'] = opponent
-        avg_score_dict['Play_against_self'] = self_play
-        while counter < len(avg_score):
-            avg_score_dict[f'score_{counter}'] = avg_score[counter]
-            counter += 1
-        avg_score_dict['mean'] = np.mean(avg_score)
+        if self_play==True:
+            counter = 0
+            avg_score_dict = {}
+            avg_score_dict['testing_bot'] = opponent
+            avg_score_dict['Play_against_self'] = self_play
+            while counter < len(avg_score):
+                avg_score_dict[f'score_{counter}'] = avg_score[counter]
+                counter += 1
+            avg_score_dict['mean'] = np.mean(avg_score)
 
-        with open(os.path.join(model_dir, 'average_scores.json'), 'w') as fp:
-            json.dump(avg_score_dict, fp)
+            with open(os.path.join(model_dir, 'average_scores.json'), 'w') as fp:
+                json.dump(avg_score_dict, fp)
 
 if __name__ == '__main__':
     main()
