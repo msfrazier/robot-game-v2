@@ -7,14 +7,14 @@ import time
 import numpy as np
 import rgkit.rg as rg
 from rgkit import game as rg_game
-from tensorflow.keras.layers import Dense, Input, BatchNormalization
+from tensorflow.keras.layers import Dense, Input, BatchNormalization, Dropout
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam, Adamax
 from tensorflow.keras.regularizers import l2
 from drl_robot_helpers import DRLRobot, get_player, get_logger
 from sklearn.model_selection import ParameterGrid
 from tensorflow import config
-from tensorflow_core.python.keras.backend import clear_session
+from tensorflow.python.keras.backend import clear_session
 
 
 class Robot(DRLRobot):
@@ -24,7 +24,7 @@ class Robot(DRLRobot):
                          epsilon_decay=epsilon_decay, memory_size=memory_size, **model_params)
 
     @staticmethod
-    def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=(32, 32), activation='relu',
+    def _build_model(state_size=(1,), action_size=10, learning_rate=0.002, layers=(32, 32), activation='relu',
                      reg_const=0, momentum=0.99, output_activation='linear'):
         """
         Build a keras model that takes the game state as input and produces the expected future reward corresponding
@@ -38,8 +38,10 @@ class Robot(DRLRobot):
         model.add(Input(shape=state_size))
         for units in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
-            #model.add(BatchNormalization(momentum=momentum))
+            model.add(Dropout(0.1))
+            model.add(BatchNormalization(momentum=momentum))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
+        model.add(BatchNormalization(momentum=momentum))
         model.compile(loss='mse', optimizer=Adamax(learning_rate=learning_rate))
         return model
 
@@ -105,6 +107,8 @@ class Robot(DRLRobot):
         if robot.hp <= 0:
             # death
             return -1.0
+        elif robot.hp >= 25:
+            return 1.0
         elif game.turn == 99:
             # survive
             return 1.0
