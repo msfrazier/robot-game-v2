@@ -159,7 +159,7 @@ def main():
         if len(sys.argv) > 2:
             opponent = sys.argv[2]
         else:
-            opponent = 'sfpar'
+            opponent = 'simple'
 
         if not os.path.isdir(model_dir):
             print(f'Creating {model_dir}')
