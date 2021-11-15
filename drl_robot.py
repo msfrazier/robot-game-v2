@@ -39,10 +39,10 @@ class Robot(DRLRobot):
         model.add(Input(shape=state_size))
         for units, dropout in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
-            model.add(BatchNormalization())
+            model.add(BatchNormalization(momentum=momentum))
             model.add(GaussianDropout(dropout))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
-        model.add(BatchNormalization())
+        model.add(BatchNormalization(momentum=momentum))
         model.compile(loss='mse', optimizer=Adam(learning_rate=learning_rate))
         return model
 
@@ -90,14 +90,14 @@ class Robot(DRLRobot):
         :return: The robot's state as a numpy array
         """
         offsets = (                   (0, 4),
-                             (-1, 3), (0,3) ,   (1, 3),
-                    (-2, 2), (-1, 2), (0, 2),   (1, 2), (2, 2),
-           (-3, 1),(-2, 1), (-1, 1), (0, 1),    (1, 1), (2, 1), (3, 1),
- (-4, 0), (-3, 0), (-2, 0), (-1, 0),            (1, 0), (2, 0), (3, 0), (4,0),
-          (-3, -1), (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),(3, -1),
-                   (-2, -2), (-1, -2), (0, -2), (1, -2), (2, -2),
-                             (-1, -3), (0, -3), (1, -3),
-                                       (0, -4)
+                             (-1, 3), (0, 3),  (1, 3),
+                    (-2, 2), (-1, 2), (0, 2),  (1, 2), (2, 2),
+           (-3, 1), (-2, 1), (-1, 1), (0, 1),  (1, 1), (2, 1), (3, 1),
+  (-4, 0), (-3, 0), (-2, 0), (-1, 0),          (1, 0), (2, 0), (3, 0), (4,0),
+           (-3, -1),(-2, -1),(-1, -1),(0, -1), (1, -1),(2, -1),(3, -1),
+                    (-2, -2),(-1, -2),(0, -2), (1, -2),(2, -2),
+                             (-1, -3),(0, -3), (1, -3),
+                                      (0, -4)
                                       )
 
         x, y = robot.location
@@ -162,9 +162,9 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.01],
-        'layers': [[(128, .0),(512, .0),(256, .0)]],
+        'layers': [[(256, .1),(512, .0),(256, .0)]],
         'activation': ['relu'],
-        'momentum': [0.99],
+        'momentum': [0.],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
         'memory_size': [10000],  # roughly 10 games worth of actions
         'reg_const': [0.000],
@@ -187,7 +187,7 @@ def main():
         if len(sys.argv) > 2:
             opponent = sys.argv[2]
         else:
-            opponent = 'sfpar'
+            opponent = 'simple_bot'
 
         if not os.path.isdir(model_dir):
             print(f'Creating {model_dir}')
@@ -226,7 +226,7 @@ def main():
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .02],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .02],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .02],
 
         ], dtype=np.float32)
