@@ -24,7 +24,8 @@ class Robot(DRLRobot):
                          epsilon_decay=epsilon_decay, memory_size=memory_size, **model_params)
 
     @staticmethod
-    def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=((32, .1), (32, .1)), activation='relu',
+    def _build_model(state_size=(1,), action_size=10, learning_rate=0.001, layers=((32, .1), (32, .1)),
+                     activation='relu',
                      reg_const=0, momentum=0.99, output_activation='linear'):
         """
         Build a keras model that takes the game state as input and produces the expected future reward corresponding
@@ -38,8 +39,10 @@ class Robot(DRLRobot):
         model.add(Input(shape=state_size))
         for units, dropout in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
+            model.add(BatchNormalization())
             model.add(GaussianDropout(dropout))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
+        model.add(BatchNormalization())
         model.compile(loss='mse', optimizer=Adam(learning_rate=learning_rate))
         return model
 
@@ -70,7 +73,11 @@ class Robot(DRLRobot):
     def enemy_at_loc(game, robot, loc):
         if loc in game.robots:
             if game.robots[loc].player_id != robot.player_id:
-                return True
+                return 1
+            else:
+                return -1
+        else:
+            return 0
         return False
 
     @staticmethod
@@ -82,23 +89,38 @@ class Robot(DRLRobot):
         :param robot: The robot to compute the state for.
         :return: The robot's state as a numpy array
         """
-        offsets = ((-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2),
-                   (-2, 1), (-1, 1), (0, 1), (1, -1), (2, 1),
-                   (-2, 0), (-1, 0),         (1, -1), (2, 0),
-                   (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
-                   (-2, -2), (-1, -2), (0, -2), (1, -1), (2, -2))
+        offsets = (                   (0, 4),
+                             (-1, 3), (0,3) ,   (1, 3),
+                    (-2, 2), (-1, 2), (0, 2),   (1, 2), (2, 2),
+           (-3, 1),(-2, 1), (-1, 1), (0, 1),    (1, 1), (2, 1), (3, 1),
+ (-4, 0), (-3, 0), (-2, 0), (-1, 0),            (1, 0), (2, 0), (3, 0), (4,0),
+          (-3, -1), (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),(3, -1),
+                   (-2, -2), (-1, -2), (0, -2), (1, -2), (2, -2),
+                             (-1, -3), (0, -3), (1, -3),
+                                       (0, -4)
+                                      )
 
         x, y = robot.location
         locs_around = [(x + dx, y + dy) for dx, dy in offsets]
         locs_around = [a_loc for a_loc in locs_around]
 
+        freinds = np.array(
+                [(game.robots[loc].hp / 50.) if Robot.enemy_at_loc(game, robot, loc) > 0 else 0. for loc in
+                 locs_around])
+        enemies = np.array(
+                 [(game.robots[loc].hp / -50.) if Robot.enemy_at_loc(game, robot, loc) < 0 else 0. for loc in
+                  locs_around])
+
+
+        bots = (freinds + enemies).tolist()
+
+
+
         # state = [on spawn?, spawn turn?, enemy_down?, enemy_right?, enemy_up?, enemy_left?]
         state = [
                     'spawn' in rg.loc_types(robot.location),
                     game.turn % 10 == 0,
-                ] + [
-                    game.robots[loc].hp if Robot.enemy_at_loc(game, robot, loc) else 0 for loc in locs_around
-                ] + [robot.hp / 50]
+                ] + bots + [robot.hp / 50]
 
         return np.array(state, dtype=np.float32)
 
@@ -113,7 +135,7 @@ class Robot(DRLRobot):
         """
         if robot.hp <= 0:
             # death
-            return -1.0
+            return game.turn - 99
         # elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:
         #   return -1
         elif game.turn == 99:
@@ -140,15 +162,15 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.01],
-        'layers': [[(128, .0), (256, .0), (256, .0), (128, .0)]],
+        'layers': [[(128, .0),(512, .0),(256, .0)]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
         'memory_size': [10000],  # roughly 10 games worth of actions
         'reg_const': [0.000],
         'epsilon_decay': [0.99],
-        'output_activation': ['linear'],
-        'state_size': [(27,)],
+        'output_activation': ['tanh'],
+        'state_size': [(43,)],
         'action_size': [10],
     }
 
@@ -180,7 +202,7 @@ def main():
                 params_ = json.load(fp)
 
         logger = get_logger(model_dir)
-        #logger.setLevel(40)
+        # logger.setLevel(40)
 
         logger.info(f'{model_dir} vs. {opponent}, self_play={self_play}')
 
@@ -195,17 +217,17 @@ def main():
             player3, robot3 = None, None
 
         check_states = np.array([
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, .02],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .02],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .02],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .02],
 
         ], dtype=np.float32)
 
