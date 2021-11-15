@@ -271,7 +271,7 @@ def main():
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
 
         average_score = 0
-        num_episodes = 100  # number of games to train
+        num_episodes = 3000  # number of games to train
         t = time.time()
         avg_score = []
         best_test_score= -np.inf
