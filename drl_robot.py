@@ -38,7 +38,7 @@ class Robot(DRLRobot):
         model.add(Input(shape=state_size))
         for units in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
-            model.add(Dropout(0.1))
+            # model.add(Dropout(0.1))
             model.add(BatchNormalization(momentum=momentum))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
         model.add(BatchNormalization(momentum=momentum))
@@ -111,6 +111,8 @@ class Robot(DRLRobot):
             return 1.0
         elif game.turn == 99:
             # survive
+            return 1.0
+        elif robot.damage_caused > 5:
             return 1.0
         else:
             # otherwise
