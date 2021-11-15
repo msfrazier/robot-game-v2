@@ -96,22 +96,30 @@ class Robot(DRLRobot):
         #            )
 
         offsets = ((-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2),
-                    (-2, 1), (-1, 1), (0, 1), (1, 1), (2, 1),
-                    (-2, 0), (-1, 0), (1, 0), (2, 0),
-                    (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
-                    (-2, -2), (-1, -2), (0, -2), (1, -1), (2, -2))
+                   (-2, 1), (-1, 1), (0, 1), (1, 1), (2, 1),
+                   (-2, 0), (-1, 0), (1, 0), (2, 0),
+                   (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
+                   (-2, -2), (-1, -2), (0, -2), (1, -1), (2, -2))
 
         x, y = robot.location
         locs_around = [(x + dx, y + dy) for dx, dy in offsets]
         locs_around = [a_loc for a_loc in locs_around]
 
         # state = [on spawn?, spawn turn?, enemy_down?, enemy_right?, enemy_up?, enemy_left?]
+        friends = np.array(
+            [1 if Robot.enemy_at_loc(game, robot, loc) > 0 else 0. for loc in
+             locs_around])
+        enemies = np.array(
+            [(-1) if Robot.enemy_at_loc(game, robot, loc) < 0 else 0. for loc in
+             locs_around])
+
+        bots = (friends + enemies).tolist()
+
+        # state = [on spawn?, spawn turn?, enemy_down?, enemy_right?, enemy_up?, enemy_left?]
         state = [
                     'spawn' in rg.loc_types(robot.location),
                     game.turn % 10 == 0,
-                ] + [
-                    game.robots[loc].hp if Robot.enemy_at_loc(game, robot, loc) else 0 for loc in locs_around
-                ] + [robot.hp / 50]
+                ] + bots + [robot.hp]
 
         return np.array(state, dtype=np.float32)
 
@@ -126,26 +134,20 @@ class Robot(DRLRobot):
         """
         reward = 0
         if robot.hp <= 0:  # Robot has died
-
-            reward -= 50.0
+            if robot.damage_caused >= 10:
+                reward += robot.damage_caused
+            else:
+                reward -= 10.0
         elif 'spawn' in rg.loc_types(robot.location) and game.turn % 10 == 0:  # Robot is in a spawn location
-            reward -= 50.0
-        # elif 'ally' in rg.loc_types(robot.location):  # Ally nearby
-        #     reward += 1.0
-        # elif game.turn >= 25:  # Encourage staying alive and near center
-        #     if rg.dist(robot.location, rg.CENTER_POINT) == 0:
-        #         reward += game.turn / 100
-        #     else:
-        #         reward += ((game.turn / 100) / rg.dist(robot.location, rg.CENTER_POINT))
-        #     reward += robot.damage_caused + (robot.hp / 50)
+            reward -= 10.0
         elif game.turn % 9 == 0:  # Staying alive until the next spawn turn
             reward += 5
-            reward += robot.damage_caused - robot.damage_taken
+            reward += robot.damage_caused
         elif not (robot.hp <= 0):  # Add damage dealt if bot is alive
-            reward += robot.damage_caused - robot.damage_taken
+            reward += robot.damage_caused
         elif game.turn == 99:  # Stay alive to the end
-            reward += 10 * (robot.damage_caused - robot.damage_taken)
-        return reward
+            reward += 5 * robot.damage_caused
+        return reward - 0.5 * robot.damage_taken
 
 
 def main():
@@ -208,6 +210,9 @@ def main():
         robot1 = Robot(model_dir=model_dir, exploit=False, **params_)
         player1 = rg_game.Player(robot=robot1)
 
+        # robot1 = Robot(model_dir='drlrobot\\20211115174200', exploit=False, **params)
+        # player1 = rg_game.Player(robot=robot1)
+
         if self_play:
             player2 = rg_game.Player(robot=robot1)
             player3, robot3 = get_player(opponent)
@@ -216,17 +221,20 @@ def main():
             player3, robot3 = None, None
 
         check_states = np.array([
+            # Surrounded and 50/50
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, -1, -1, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 50.],
+            # Surrounded and 1/50
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
+            # Numbers advantage on enemy
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
             [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, .02],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, .02],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
 
         ], dtype=np.float32)
 

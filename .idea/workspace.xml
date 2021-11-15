@@ -4,34 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c4e611fc-3ec8-4551-a227-e1f8cee06a45" name="Changes" comment="Added simple.py as an opponent">
-      <change afterPath="$PROJECT_DIR$/randombot.py" afterDir="false" />
+    <list default="true" id="c4e611fc-3ec8-4551-a227-e1f8cee06a45" name="Changes" comment="Simplified get_state and fixed input size">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/drl_robot.py" beforeDir="false" afterPath="$PROJECT_DIR$/drl_robot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/bots/guardbot.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/bots/guardbot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/bots/randombot.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/bots/randombot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/game.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/game.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/gamestate.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/gamestate.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/mapeditor.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/mapeditor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/maps/afffsdd/card.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/maps/afffsdd/card.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/maps/afffsdd/castle.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/maps/afffsdd/castle.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/maps/afffsdd/field.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/maps/afffsdd/field.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/maps/afffsdd/fourcorners.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/maps/afffsdd/fourcorners.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/maps/afffsdd/hourglass.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/maps/afffsdd/hourglass.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/maps/afffsdd/mansion.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/maps/afffsdd/mansion.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/maps/afffsdd/metasquares.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/maps/afffsdd/metasquares.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/maps/afffsdd/square.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/maps/afffsdd/square.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/maps/default.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/maps/default.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/render/highlightsprite.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/render/highlightsprite.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/render/render.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/render/render.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/render/robotsprite.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/render/robotsprite.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/render/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/render/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/render/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/render/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/rg.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/rg.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/rgcurses.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/rgcurses.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/run.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rgkit/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/rgkit/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/simple.py" beforeDir="false" afterPath="$PROJECT_DIR$/simple.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -115,7 +90,14 @@
       <option name="project" value="LOCAL" />
       <updated>1636726902118</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Simplified get_state and fixed input size">
+      <created>1636992920664</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1636992920664</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -133,6 +115,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Changed reward function so that reward is not higher for being low health. Now instead gives diminishing points for damage at lower health values." />
     <MESSAGE value="Added simple.py as an opponent" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added simple.py as an opponent" />
+    <MESSAGE value="Simplified get_state and fixed input size" />
+    <option name="LAST_COMMIT_MESSAGE" value="Simplified get_state and fixed input size" />
   </component>
 </project>
