@@ -207,11 +207,11 @@ def main():
 
         logger.info(f'{model_dir} vs. {opponent}, self_play={self_play}')
 
-        robot1 = Robot(model_dir=model_dir, exploit=False, **params_)
-        player1 = rg_game.Player(robot=robot1)
-
-        # robot1 = Robot(model_dir='drlrobot\\20211115174200', exploit=False, **params)
+        # robot1 = Robot(model_dir=model_dir, exploit=False, **params_)
         # player1 = rg_game.Player(robot=robot1)
+
+        robot1 = Robot(model_dir='drl_robot\\20211115213535', exploit=False, **params_)
+        player1 = rg_game.Player(robot=robot1)
 
         if self_play:
             player2 = rg_game.Player(robot=robot1)
