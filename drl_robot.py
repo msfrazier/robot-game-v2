@@ -117,19 +117,24 @@ class Robot(DRLRobot):
         :param robot: the robot
         :return: a number indicating reward (higher is better)
         """
+        reward = 0.0
         if robot.hp <= 0:
             # death
-            return -1.0
-        elif robot.hp >= 25:
-            return 1.0
+            if robot.damage_caused >= 15:
+                reward += 5.0
+            else:
+                reward -= 5.0
+        elif game.turn % 50 == 0 and robot.hp >= 25:
+            reward += 10.0
         elif game.turn == 99:
             # survive
-            return 1.0
-        elif robot.damage_caused > 5:
-            return 1.0
+            reward += 10.0
+        elif robot.damage_caused >= 10:
+            reward += 5.0
         else:
             # otherwise
-            return 0.0
+            reward += 0.0
+        return reward
 
 
 def main():
@@ -146,7 +151,7 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.001],
-        'layers': [[1280,640,320,160]],
+        'layers': [[512,128,64,32]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
