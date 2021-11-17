@@ -107,7 +107,7 @@ class Robot(DRLRobot):
             return -1.0
         elif game.turn == 99:
             # survive
-            return 1.0
+            return 50.0
         else:
             # otherwise
             return 0.0
