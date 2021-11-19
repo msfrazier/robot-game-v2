@@ -154,8 +154,8 @@ class Robot(DRLRobot):
         state_funcs = [
             #Robot.on_spawn,
             #Robot.spawn_turn,
-            max(enemies),
-            rg.CENTER_POINT != robot.location
+            #max(enemies),
+            #rg.CENTER_POINT != robot.location
         ]
 
         state = []
@@ -167,6 +167,8 @@ class Robot(DRLRobot):
                 state.append(s)
 
         #state += neighbors
+        state.append(max(enemies))
+        state.append(rg.CENTER_POINT != robot.location)
 
         return np.array(state, dtype=np.float32)
 
