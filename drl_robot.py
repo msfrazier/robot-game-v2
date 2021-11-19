@@ -117,23 +117,22 @@ class Robot(DRLRobot):
         :param robot: the robot
         :return: a number indicating reward (higher is better)
         """
-        reward = 0.0
+        death_penalty = 50
+        reward = 0
         if robot.hp <= 0:
             # death
-            if robot.damage_caused >= 15:
-                reward += 5.0
-            else:
-                reward -= 5.0
-        elif game.turn % 50 == 0 and robot.hp >= 25:
-            reward += 10.0
+            reward -= death_penalty
         elif game.turn == 99:
             # survive
-            reward += 10.0
-        elif robot.damage_caused >= 10:
-            reward += 5.0
-        else:
-            # otherwise
-            reward += 0.0
+            reward += death_penalty
+        elif game.turn % 50 == 0 and robot.hp >= 25:
+            reward += death_penalty
+
+        # kills
+        reward += robot.kills * death_penalty
+
+        # damage
+        reward += robot.damage_caused - robot.damage_taken
         return reward
 
 
@@ -179,7 +178,7 @@ def main():
         if len(sys.argv) > 2:
             opponent = sys.argv[2]
         else:
-            opponent = 'simple'
+            opponent = 'random_bot'
 
         if not os.path.isdir(model_dir):
             print(f'Creating {model_dir}')

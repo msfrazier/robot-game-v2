@@ -229,9 +229,10 @@ class Player(object):
 
         # RMP: handle zombies
         for robot in game_state.zombies.values():
-            self._get_response(
-                game_info, robot,
-                seed=str(seed) + '-' + str(robot.robot_id))
+            if robot.player_id == self._player_id:
+                self._get_response(
+                    game_info, robot,
+                    seed=str(seed) + '-' + str(robot.robot_id))
 
         return actions, outputs
 
