@@ -228,7 +228,7 @@ def main():
     self_play = False
     params = {
         'learning_rate': 0.001,
-        'layers': [64, 64, 32, 16],
+        'layers': [64, 64, 64, 16],
         'activation': 'tanh',
         'mini_batch_size': 10000,  # roughly 10 game's worth of actions
         'memory_size': 100000,  # roughly 100 games worth of actions
