@@ -99,15 +99,19 @@ class Robot(DRLRobot):
         :param robot: the robot taking the action
         :return: the RobotGame action
         """
+        distance = 9990
+        for loc, bot in game.robots.items():
+            if bot.player_id != robot.player_id:
+                if rg.dist(loc, robot.location) == 1:
+                    attack = loc
+                    break
+                elif rg.dist(loc, robot.location) < distance:
+                    distance = rg.dist(loc, robot.location)
+                    attack = game.toward(robot.location, loc)
+
         return [
-            Robot.move(0),
-            Robot.move(1),
-            Robot.move(2),
-            Robot.move(3),
-            Robot.attack(0),
-            Robot.attack(1),
-            Robot.attack(2),
-            Robot.attack(3),
+            Robot.move(game.toward(robot.location, game.CENTER_POINT)),
+            Robot.attack(attack),
             Robot.guard,
             Robot.suicide,
         ][action_index](game, robot)
@@ -122,11 +126,9 @@ class Robot(DRLRobot):
         :return: The robot's state as a numpy array
         """
 
-        offsets = (                   (0, 2),
-                            (-1, 1), (0, 1),  (1, -1),
-                   (-2, 0), (-1, 0),          (1, -1), (2, 0),
-                            (-1, -1), (0, -1),(1, -1),
-                                      (0, -2))
+        offsets = (          (0, 1),
+                      (-1, 0),       (1, 0),
+                             (0, -1),)
 
         x, y = robot.location
         locs_around = [(x + dx, y + dy) for dx, dy in offsets]
@@ -150,8 +152,10 @@ class Robot(DRLRobot):
 
 
         state_funcs = [
-            Robot.on_spawn,
-            Robot.spawn_turn,
+            #Robot.on_spawn,
+            #Robot.spawn_turn,
+            max(enemies),
+            rg.CENTER_POINT != robot.location
         ]
 
         state = []
@@ -162,7 +166,7 @@ class Robot(DRLRobot):
             else:
                 state.append(s)
 
-        state += neighbors
+        #state += neighbors
 
         return np.array(state, dtype=np.float32)
 
