@@ -42,8 +42,8 @@ class Robot(DRLRobot):
         # Flatten()
         for units in layers:
             model.add(Dense(units, activation=activation, kernel_regularizer=l2(reg_const)))
-            #model.add(BatchNormalization(momentum=momentum))
-        #model.add(BatchNormalization(momentum=momentum))
+            model.add(BatchNormalization(momentum=momentum))
+        # model.add(BatchNormalization(momentum=momentum))
         model.add(Dense(action_size, activation=output_activation, kernel_regularizer=l2(reg_const)))
         model.compile(loss='mse', optimizer=Adam(learning_rate=learning_rate))
         return model
@@ -60,15 +60,20 @@ class Robot(DRLRobot):
         :param robot: the robot taking the action
         :return: the RobotGame action
         """
+        # print(action_index)
         if action_index == 8:
+            # print('guard')
             return ['guard']
         elif action_index == 9:
+            # print('suicide')
             return ['suicide']
         else:
             locations = rg.locs_around(robot.location)
             if action_index < 4:
+                # print('move {0}'.format(locations[action_index]))
                 return ['move', locations[action_index]]
             else:
+                # print('attack {0}'.format(locations[action_index - 4]))
                 return ['attack', locations[action_index - 4]]
 
     @staticmethod
@@ -95,31 +100,47 @@ class Robot(DRLRobot):
         :return: The robot's state as a numpy array
         """
 
-        offsets = ((-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2),
-                   (-2, 1), (-1, 1), (0, 1), (1, -1), (2, 1),
-                   (-2, 0), (-1, 0), (1, -1), (2, 0),
-                   (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
-                   (-2, -2), (-1, -2), (0, -2), (1, -1), (2, -2))
+        offsets = (
+                                (0, 2),
+                       (-1, 1), (0, 1), (1, 1),
+              (-2, 0), (-1, 0),         (1, 0), (2, 0),
+                       (-1, -1), (0, -1), (1, -1),
+                                 (0, -2)
+                  )
 
         x, y = robot.location
         locs_around = [(x + dx, y + dy) for dx, dy in offsets]
         locs_around = [a_loc for a_loc in locs_around]
 
         # state = [on spawn?, spawn turn?, enemy_down?, enemy_right?, enemy_up?, enemy_left?]
-        state = [
-                    'spawn' in rg.loc_types(robot.location),
-                    game.turn % 10 == 0,
-                ] + [
-                    #game.robots[loc].hp if Robot.enemy_at_loc(game, robot, loc) else 0 for loc in locs_around
-                    1 if Robot.enemy_at_loc(game, robot, loc) else 0 for loc in locs_around
-                ] + [
-                    1 if Robot.ally_at_loc(game, robot, loc) else 0 for loc in locs_around
-                ] + [
-                robot.hp / 50]
+        # state = [
+        #             'spawn' in rg.loc_types(robot.location),
+        #             game.turn % 10 == 0,
+        #         ] + [
+        #             # game.robots[loc].hp if Robot.enemy_at_loc(game, robot, loc) else 0 for loc in locs_around
+        #             1 if Robot.enemy_at_loc(game, robot, loc) else 0 for loc in locs_around
+        #         ] + [
+        #             -1 if Robot.ally_at_loc(game, robot, loc) else 0 for loc in locs_around
+        #         ] + [
+        #         robot.hp]
+        friends = np.array(
+            [(game.robots[loc].hp / 50.) if Robot.enemy_at_loc(game, robot, loc) > 0 else 0. for loc in
+             locs_around])
+        enemies = np.array(
+            [(game.robots[loc].hp / -50.) if Robot.enemy_at_loc(game, robot, loc) < 0 else 0. for loc in
+             locs_around])
+        obstacles = np.array(
+            [-999 if 'obstacle' in rg.loc_types(loc) else 0. for loc in locs_around])
+        invalid = np.array(
+            [-999 if 'invalid' in rg.loc_types(loc) else 0. for loc in locs_around])
+
+        bots = (friends + enemies + obstacles + invalid).tolist()
+
+        # state = [on spawn?, spawn turn?, enemy_down?, enemy_right?, enemy_up?, enemy_left?]
+        state = ['spawn' in rg.loc_types(robot.location), game.turn % 10 == 0, ] + bots + [robot.hp / 50]
+        # print(state)
 
         return np.array(state, dtype=np.float32)
-
-        #return np.array(state, dtype=np.float32)
 
     @staticmethod
     def get_reward(game, robot):
@@ -130,42 +151,42 @@ class Robot(DRLRobot):
         :param robot: the robot
         :return: a number indicating reward (higher is better)
         """
-        offsets = ((-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2),
-                   (-2, 1), (-1, 1), (0, 1), (1, -1), (2, 1),
-                   (-2, 0), (-1, 0), (1, -1), (2, 0),
-                   (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
-                   (-2, -2), (-1, -2), (0, -2), (1, -1), (2, -2))
+        offsets = (
+                                     (0, 2),
+                            (-1, 1), (0, 1), (1, 1),
+                   (-2, 0), (-1, 0),         (1, 0), (2, 0),
+                            (-1, -1), (0, -1), (1, -1),
+                                      (0, -2))
 
         x, y = robot.location
         locs_around = [(x + dx, y + dy) for dx, dy in offsets]
         locs_around = [a_loc for a_loc in locs_around]
-
+        #
         allies_around = 0
         for loc in locs_around:
-            if Robot.ally_at_loc(game,robot,loc):
+            if Robot.ally_at_loc(game, robot, loc):
                 allies_around += 1
-
+        #
+        enemies_around = 0
+        for loc in locs_around:
+            if Robot.enemy_at_loc(game, robot, loc):
+                enemies_around += 1
+        # reward = +50 for surviving to the end of the game,
+        # -50 for death, +50 for each kill, plus damage_caused - damage_taken.
+        reward = 0
+        if game.turn >= 99:
+            reward += 50
         if robot.hp <= 0:
-            # death
-            return -1.0
-        elif game.turn == 99:
-            # survive
-            return 1.0
-        # elif robot.kills > 0:
-        #     return 1.0
-        else:
-            # otherwise
-            #return robot.damage_caused - robot.damage_taken
-
-            if robot.damage_caused > robot.damage_taken:
-                return 1.0
-            elif robot.damage_caused < robot.damage_taken:
-                return -1.0
-            # elif allies_around > 2:
-            #     return 1.0
-
-            return 0.0
-
+            reward -= 50
+        reward += 50 * robot.kills
+        reward += 5 * (robot.damage_caused - robot.damage_taken)
+        if enemies_around > allies_around:
+            reward -= 2 * (enemies_around - allies_around)
+        if allies_around > enemies_around:
+            reward += 2 * allies_around
+        if game.turn % 9 == 0:
+            reward += 5
+        return reward
 
 
 def main():
@@ -179,23 +200,23 @@ def main():
             # Memory growth must be set before GPUs have been initialized
             print(e)
 
-    self_play = True
+    self_play = False
     params = {
         'learning_rate': [0.001],
-        #'conv_layers': [[64,128]],
-        'layers': [[256,128,64,32]],
+        # 'conv_layers': [[64,128]],
+        'layers': [[256, 128, 64]],
         'activation': ['relu'],
         'momentum': [0.99],
-        'mini_batch_size': [1000],  # roughly one game's worth of actions
+        'mini_batch_size': [1000],  # roughly 1 game's worth of actions
         'memory_size': [10000],  # roughly 10 games worth of actions
         'reg_const': [0.000],
-        'epsilon_decay': [0.00],
-        'output_activation': ['tanh'],
-        'state_size': [(51,)],
+        'epsilon_decay': [0.8],
+        'output_activation': ['linear'],
+        'state_size': [(15,)],
         'action_size': [10],
     }
 
-    #Get params for GridSearch
+    # Get params for GridSearch
     params_grid = list(ParameterGrid(params))
 
     for params_ in params_grid:
@@ -227,12 +248,12 @@ def main():
 
         logger.info(f'{model_dir} vs. {opponent}, self_play={self_play}')
 
-        #New Robot
+        # New Robot
         # robot1 = Robot(model_dir=model_dir, exploit=False, **params_)
         # player1 = rg_game.Player(robot=robot1)
 
-        #Use existing robot
-        robot1 = Robot(model_dir='drl_robot\\20211115183002', exploit=False, **params_)
+        # Use existing robot
+        robot1 = Robot(model_dir='drl_robot\\20211119204910', exploit=False, **params_)
         player1 = rg_game.Player(robot=robot1)
 
         if self_play:
@@ -240,7 +261,7 @@ def main():
             player3, robot3 = get_player(opponent)
         else:
             player2, robot2 = get_player(opponent)
-            player3, robot3 = None,None
+            player3, robot3 = None, None
 
         # check_states = np.array([
         #     [0, 0, 0, 0, 0, 0],
@@ -254,27 +275,27 @@ def main():
         # ], dtype=np.float32)
 
         check_states = np.array([
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1.],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.],
 
         ], dtype=np.float32)
 
         logger.info('\n' + str(robot1.model(check_states).numpy().round(2)))
 
         average_score = 0
-        num_episodes = 100  # number of games to train
+        num_episodes = 1000  # number of games to train
         t = time.time()
         avg_score = []
-        best_test_score= -np.inf
+        best_test_score = -np.inf
         for e in range(1, num_episodes+1):
             t0 = time.time()
 
@@ -294,7 +315,7 @@ def main():
             t_train = time.time()
 
             # keep exponential running average of final score
-            if (e == 1):
+            if e == 1:
                 average_score = score
             else:
                 average_score += 0.01 * (score - average_score)
@@ -333,11 +354,11 @@ def main():
                     logger.info(f'vs. {opponent}: {wins}-{loss}-{draw}, average score = {score} - {opp_score} = {opponent_average_score}, '
                                 f'{t_opp:.1f} s.')
                     robot1.exploit = False
-                    #Add avg score
+                    # Add avg score
                     avg_score.append(opponent_average_score)
-                    #Test best score and save best
-                    if opponent_average_score > best_test_score and self_play==True:
-                        #robot1.save()
+                    # Test best score and save best
+                    if opponent_average_score > best_test_score and self_play == True:
+                        # robot1.save()
 
                         counter = 0
                         avg_score_dict = {}
@@ -351,11 +372,9 @@ def main():
                         assemble_results
                         best_test_score = opponent_average_score
 
-
-
         logger.info(f'{(time.time() - t) / num_episodes:.3f} s. per episode')
 
-        if self_play==True:
+        if self_play == False:
             counter = 0
             avg_score_dict = {}
             avg_score_dict['testing_bot'] = opponent
@@ -367,6 +386,7 @@ def main():
 
             with open(os.path.join(model_dir, 'average_scores.json'), 'w') as fp:
                 json.dump(avg_score_dict, fp)
+
 
 if __name__ == '__main__':
     main()
