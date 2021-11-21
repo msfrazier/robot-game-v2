@@ -6,6 +6,7 @@ import sys
 import time
 import numpy as np
 import rgkit.rg as rg
+import assemble_results
 from rgkit import game as rg_game
 from tensorflow.keras.layers import Dense, Input, BatchNormalization, Dropout
 from tensorflow.keras.models import Sequential
@@ -85,15 +86,11 @@ class Robot(DRLRobot):
         :return: The robot's state as a numpy array
         """
 
-        offsets = (      (-4,-4),(-3,-4),(-2,-4),(-1,-4),(0,-4),(1,-4),(2,-4),(3,-4),(4,-4),
-                                 (-4,-3),(-3,-3),(-2,-3),(-1,-3),(0,-3),(1,-3),(2,-3),(3,-3),(4,-3),
-                                         (-4,-2),(-3,-2),(-2,-2),(-1,-2),(0,-2),(1,-2),(2,-2),(3,-2),(4,-2),
-                                                 (-4,-1),(-3,-1),(-2,-1),(-1,-1),(0,-1),(1,-1),(2,-1),(3,-1),(4,-1),
-                                                         (-4, 0),(-3, 0),(-2, 0),(-1, 0),(0, 0),(1, 0),(2, 0),(3, 0),(4, 0),
-                                                                (-4, 1),(-3, 1),(-2, 1),(-1, 1),(0, 1),(1, 1),(2, 1),(3, 1),(4, 1),
-                                                                       (-4, 2),(-3, 2),(-2, 2),(-1, 2),(0, 2),(1, 2),(2, 2),(3, 2),(4, 2),
-                                                                              (-4, 3),(-3, 3),(-2, 3),(-1, 3),(0, 3),(1, 3),(2, 3),(3, 3),(4, 3),
-                                                                                     (-4, 4),(-3, 4),(-2, 4),(-1, 4),(0, 4),(1, 4),(2, 4),(3, 4),(4, 4))
+        offsets = (     (-2,-2),(-1,-2),(0,-2),(1,-2),(2,-2),
+                        (-2,-1),(-1,-1),(0,-1),(1,-1),(2,-1),
+                        (-2, 0),(-1, 0),(0, 0),(1, 0),(2, 0),
+                        (-2, 1),(-1, 1),(0, 1),(1, 1),(2, 1),
+                        (-2, 2),(-1, 2),(0, 2),(1, 2),(2, 2))
 
         x, y = robot.location
         locs_around = [(x + dx, y + dy) for dx, dy in offsets]
@@ -125,8 +122,6 @@ class Robot(DRLRobot):
         elif game.turn == 99:
             # survive
             reward += death_penalty
-        elif game.turn % 50 == 0 and robot.hp >= 25:
-            reward += death_penalty
 
         # kills
         reward += robot.kills * death_penalty
@@ -150,7 +145,7 @@ def main():
     self_play = True
     params = {
         'learning_rate': [0.001],
-        'layers': [[512,128,64,32]],
+        'layers': [[128,64,32]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly one game's worth of actions
@@ -282,6 +277,8 @@ def main():
                     robot1.exploit = False
                     #Add avg score
                     avg_score.append(opponent_average_score)
+
+                    assemble_results
 
         logger.info(f'{(time.time() - t) / num_episodes:.3f} s. per episode')
 
