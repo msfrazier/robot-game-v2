@@ -163,29 +163,37 @@ class Robot(DRLRobot):
         locs_around = [a_loc for a_loc in locs_around]
         #
         allies_around = 0
+        enemies_around = 0
         for loc in locs_around:
             if Robot.ally_at_loc(game, robot, loc):
                 allies_around += 1
-        #
-        enemies_around = 0
-        for loc in locs_around:
             if Robot.enemy_at_loc(game, robot, loc):
                 enemies_around += 1
+
+        obstacles = np.array(
+            [-999 if 'obstacle' in rg.loc_types(loc) else 0. for loc in locs_around])
+        invalid = np.array(
+            [-999 if 'invalid' in rg.loc_types(loc) else 0. for loc in locs_around])
+        bots = (obstacles + invalid).tolist()
+
         # reward = +50 for surviving to the end of the game,
         # -50 for death, +50 for each kill, plus damage_caused - damage_taken.
         reward = 0
         if game.turn >= 99:
             reward += 50
         if robot.hp <= 0:
-            reward -= 50
+            return -50
         reward += 50 * robot.kills
         reward += 5 * (robot.damage_caused - robot.damage_taken)
         if enemies_around > allies_around:
-            reward -= 2 * (enemies_around - allies_around)
+            reward -= 5 * (enemies_around - allies_around)
         if allies_around > enemies_around:
-            reward += 2 * allies_around
+            reward += 5 * allies_around
         if game.turn % 9 == 0:
             reward += 5
+        reward += (game.turn / 100)
+        if 'invalid' or 'obstacle' in rg.loc_types(robot.location) and game.turn > 1:
+            reward -= 100
         return reward
 
 
@@ -204,13 +212,13 @@ def main():
     params = {
         'learning_rate': [0.001],
         # 'conv_layers': [[64,128]],
-        'layers': [[256, 128, 64]],
+        'layers': [[512, 256, 64]],
         'activation': ['relu'],
         'momentum': [0.99],
         'mini_batch_size': [1000],  # roughly 1 game's worth of actions
         'memory_size': [10000],  # roughly 10 games worth of actions
         'reg_const': [0.000],
-        'epsilon_decay': [0.8],
+        'epsilon_decay': [0.9],
         'output_activation': ['linear'],
         'state_size': [(15,)],
         'action_size': [10],
@@ -230,7 +238,7 @@ def main():
         if len(sys.argv) > 2:
             opponent = sys.argv[2]
         else:
-            opponent = 'random_with_attack'
+            opponent = 'Simple'
             opponent3 = None, None
 
         if not os.path.isdir(model_dir):
@@ -253,7 +261,7 @@ def main():
         # player1 = rg_game.Player(robot=robot1)
 
         # Use existing robot
-        robot1 = Robot(model_dir='drl_robot\\20211119204910', exploit=False, **params_)
+        robot1 = Robot(model_dir='drl_robot\\20211121011408', exploit=False, **params_)
         player1 = rg_game.Player(robot=robot1)
 
         if self_play:
