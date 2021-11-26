@@ -25,8 +25,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fc678cad-0669-4fd0-92bb-610dc2ae3cb1" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/robot-game-v2.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/robot-game-v2.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +37,7 @@
   </component>
   <component name="JupyterTrust" id="b776a1b3-1588-40a1-93f1-7f85f333d791" />
   <component name="ProjectId" id="210uZEHNnRdUDsrdUorA39Sc4Ea" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -66,7 +66,8 @@
       <workItem from="1637092239296" duration="56000" />
       <workItem from="1637092336663" duration="38000" />
       <workItem from="1637092585532" duration="794000" />
-      <workItem from="1637094577984" duration="5376000" />
+      <workItem from="1637094577984" duration="6568000" />
+      <workItem from="1637276051913" duration="2164000" />
     </task>
     <servers />
   </component>
