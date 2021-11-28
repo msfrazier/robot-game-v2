@@ -51,8 +51,27 @@ class Robot(DRLRobot):
     @staticmethod
     def move(index):
         def f(game, robot):
+
             locs = rg.locs_around(robot.location)
+
+            # if 'obstacle' in rg.loc_types(locs[index]) or 'invalid' in rg.loc_types(
+            #         locs[index]):
+            #     dist = 999
+            #     location = 0
+            #     for loc, bot in game.robots.items():
+            #         if bot.player_id != robot.player_id:
+            #             if rg.dist(loc, robot.location) == 1:
+            #                 return ['attack', loc]
+            #             elif rg.dist(loc, robot.location) < dist:
+            #                 location = rg.toward(robot.location, loc)
+            #                 dist = rg.dist(loc, robot.location)
+            #     if location != 0:
+            #         return ['attack', location]
+            #     else:
+            #         return ['guard']
+            #
             return ['move', locs[index]]
+
         return f
 
     @staticmethod
@@ -60,6 +79,7 @@ class Robot(DRLRobot):
         def f(game, robot):
             locs = rg.locs_around(robot.location)
             return ['attack', locs[index]]
+
         return f
 
     @staticmethod
@@ -75,7 +95,6 @@ class Robot(DRLRobot):
         return [float(loc in game.robots and game.robots[loc].player_id != robot.player_id)
                 for loc in rg.locs_around(robot.location)]
 
-
     @staticmethod
     def enemy_at_loc(game, robot, loc):
         if loc in game.robots:
@@ -85,7 +104,6 @@ class Robot(DRLRobot):
                 return -1
         else:
             return 0
-
 
     @staticmethod
     def get_action(action_index, game, robot):
@@ -99,6 +117,7 @@ class Robot(DRLRobot):
         :param robot: the robot taking the action
         :return: the RobotGame action
         """
+
         return [
             Robot.move(0),
             Robot.move(1),
@@ -122,16 +141,15 @@ class Robot(DRLRobot):
         :return: The robot's state as a numpy array
         """
 
-        offsets = (                   (0, 2),
-                            (-1, 1), (0, 1),  (1, -1),
-                   (-2, 0), (-1, 0),          (1, -1), (2, 0),
-                            (-1, -1), (0, -1),(1, -1),
-                                      (0, -2))
+        offsets = ((0, 2),
+                   (-1, 1), (0, 1), (1, 1),
+                   (-2, 0), (-1, 0), (1, 0), (2, 0),
+                   (-1, -1), (0, -1), (1, -1),
+                   (0, -2))
 
         x, y = robot.location
         locs_around = [(x + dx, y + dy) for dx, dy in offsets]
         locs_around = [a_loc for a_loc in locs_around]
-
         # freinds = np.array(
         #         [(game.robots[loc].hp / 50.) if Robot.enemy_at_loc(game, robot, loc) > 0 else 0. for loc in
         #          locs_around])
@@ -148,6 +166,15 @@ class Robot(DRLRobot):
 
         neighbors = (freinds + enemies).tolist()
 
+        offsets = ((0, 1),  (-1, 0), (1, 0), (0, -1),)
+
+        x, y = robot.location
+        locs_around = [(x + dx, y + dy) for dx, dy in offsets]
+        locs_around = [a_loc for a_loc in locs_around]
+        terrain =  [1 if ('obstacle' in rg.locs_around(loc) or 'invalid' in rg.locs_around(
+                    loc)) > 0 else 0 for loc in
+             locs_around]
+        #print(terrain)
 
         state_funcs = [
             Robot.on_spawn,
@@ -163,6 +190,7 @@ class Robot(DRLRobot):
                 state.append(s)
 
         state += neighbors
+        state += terrain
 
         return np.array(state, dtype=np.float32)
 
@@ -177,18 +205,19 @@ class Robot(DRLRobot):
         """
         death_penalty = 50
         reward = 0
+        decay = (game.turn - 100) / 10000 + 1
         if robot.hp <= 0:
             # death
-            reward -= death_penalty
+            reward -= death_penalty * decay
         elif game.turn == 99:
             # survive
-            reward += death_penalty
+            reward += death_penalty * decay
 
         # kills
-        reward += robot.kills * death_penalty
+        reward += robot.kills * death_penalty * decay
 
         # damage
-        reward += robot.damage_caused - robot.damage_taken
+        reward += (robot.damage_caused - robot.damage_taken) * decay
         return reward
 
 
@@ -225,10 +254,10 @@ def main():
             # Memory growth must be set before GPUs have been initialized
             print(e)
 
-    self_play = False
+    self_play = True
     params = {
         'learning_rate': 0.001,
-        'layers': [64, 64, 64, 16],
+        'layers': [64, 64, 64, 64],
         'activation': 'tanh',
         'mini_batch_size': 10000,  # roughly 10 game's worth of actions
         'memory_size': 100000,  # roughly 100 games worth of actions
@@ -303,12 +332,12 @@ def main():
 
     average_score = None
     previous_average = float('-inf')
-    patience = 3
+    patience = 10
     retries = 0
     num_episodes = 10000  # number of games to train
     t = time.time()
     avg_score = []
-    for e in range(1, num_episodes+1):
+    for e in range(1, num_episodes + 1):
         t0 = time.time()
 
         # create new game
@@ -394,5 +423,7 @@ def main():
     with open(os.path.join(model_dir, 'average_scores.json'), 'w') as fp:
         json.dump(avg_score_dict, fp)
     print(avg_score_dict)
+
+
 if __name__ == '__main__':
     main()
